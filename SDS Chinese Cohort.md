@@ -1,96 +1,55 @@
----
-aliases: 
-tags: 
-title: SDS Chinese Cohort
-date created: 2025-11-19 21:07
-date modified: 2026-04-30 22:38
----
+# SDS Chinese Cohort
 
-# Introduction  
+`SDSlog` 用于保存这个项目的事实记录。项目总览看这里，按时间的摘要看 [SDS log.md](SDS%20log.md)，详细记录看 [logs/index.md](logs/index.md)，关键结果和关键图分别看 [logs/result_index.md](logs/result_index.md) 与 [plots/plot_index.md](plots/plot_index.md)。
 
-## Purpose 
+## 1. Project Goal
 
-1. 想用 SDS 找到新的、Chinese-specific 的区域  
-2. 想找到 polygenic 的 tSDS 信号  
+1. 用 SDS 找到 Chinese-specific 的 recent positive selection regions。
+2. 用 tSDS 和 GWAS summary statistics 检查 polygenic selection signal。
+3. 用 iHS / EHH、Relate + CLUES2、meta analysis、archaic introgression enrichment 解释强峰和候选 loci。
 
---- 
+## 2. Current Data Snapshot
 
-1. 如何找到选择位点;   
-2. 推断选择开始的时间；   
-3. 判断潜在的选择压力是什么  
+- 2nd QC 后保留 3971 个 WGS 样本，当前工作记录里 NCN / SCN 为 `1255 + 2716 = 3971`。
+- 当前最近期 demography benchmark 的 NCN eligible sample count 为 `1255`，见 [2026-04-23_ncn_recent_ne_benchmark.md](logs/demography/2026-04-23_ncn_recent_ne_benchmark.md)。
+- 当前主要工作根目录：
+  - `sds/data/vcf`
+  - `sds/data/processed/sds_input`
+  - `sds/data/processed/sds_output`
+  - `benchmark/demography`
 
-# Results  
+## 3. Active Tracks
 
-## 1. SDS  
+| Topic | Current state | Latest record |
+| --- | --- | --- |
+| Demography | NCN 的 phlash / SMC++ / Relate benchmark 文件和关键图已集中登记 | [2026-04-23_ncn_recent_ne_benchmark.md](logs/demography/2026-04-23_ncn_recent_ne_benchmark.md) |
+| Genome-wide SDS | NCN genome-wide normalized output、significant regions、Manhattan plot 已登记 | [2026-04-09_ncn_genomewide_postprocess.md](logs/sds/2026-04-09_ncn_genomewide_postprocess.md) |
+| Single-SNP sensitivity | `chr4:99317841:T:C` 的 gamma sensitivity 已登记，`q97.5` 已补完 | [2026-04-16_chr4_99317841_gamma_sensitivity.md](logs/sds/2026-04-16_chr4_99317841_gamma_sensitivity.md) |
+| Ne0 panel | q2.5/q25/q50 context + scaled `Ne(0)` panel 已准备好 | [2026-04-26_ncn_region_ne0_scenario_panel.md](logs/sds/2026-04-26_ncn_region_ne0_scenario_panel.md) |
+| iHS / EHH | 方向已定，结果文件和图还没有系统回填到 `SDSlog` | [logs/ihs_ehh/README.md](logs/ihs_ehh/README.md) |
+| Meta overlap | 已有阶段性结论，但输入输出文件路径还没有系统回填到 `SDSlog` | [logs/meta_overlap/README.md](logs/meta_overlap/README.md) |
+| Relate + CLUES2 | 已有代码与处理目录，但 paper-facing 结果还没有系统回填到 `SDSlog` | [logs/relate_clues2/README.md](logs/relate_clues2/README.md) |
 
-### Full  
+## 4. Key Results In Hand
 
-### Meta  
+| Area | What is already archived | Entry |
+| --- | --- | --- |
+| Demography benchmark | benchmark manifest、recent-ne inputs manifest、phlash model、SMC++ / Relate key plots | [logs/result_index.md](logs/result_index.md) |
+| Genome-wide SDS | `NCN.normalized.tsv`、`NCN.significant_regions.tsv`、Manhattan points、Manhattan plot | [2026-04-09_ncn_genomewide_postprocess.md](logs/sds/2026-04-09_ncn_genomewide_postprocess.md) |
+| chr4 single SNP sensitivity | `summary.tsv`、`final_report.md`、scenario-level `rSDS` summary | [2026-04-16_chr4_99317841_gamma_sensitivity.md](logs/sds/2026-04-16_chr4_99317841_gamma_sensitivity.md) |
+| Region Ne0 panel | `scenario_manifest.tsv`、`scenario_aliases.json`、parallel submit plan | [2026-04-26_ncn_region_ne0_scenario_panel.md](logs/sds/2026-04-26_ncn_region_ne0_scenario_panel.md) |
 
-与 Nyuwa 的 SDS 结果用 SSW 做 meta，然后再用 IVW 做，检查 Heterogeneity  
+## 5. Working Decisions
 
-参考：[Recent positive selection signatures reveal phenotypic evolution in the Han Chinese population - ScienceDirect](https://www.sciencedirect.com/science/article/pii/S2095927323005558?via%3Dihub)  
+- Singleton counts 在南北人群之间有系统差异，SDS 应分人群计算，不做简单 pooled scan。
+- 当前 ancestry split 记录沿用现有设定：Neural-admixture unsupervised `k=4`，以 `comp 3 > 0.35` 定义北方成分。
+- 当前 recent Ne sensitivity 的工作面板以 phlash `q50` 为缩放模板，主面板使用 `Ne(0)=100k, 152k, 250k, 500k, 750k, 1e6`；`q2.5/q25/q50` 作为 posterior context；`2.5e6/5e6` 作为 high-side diagnostic；`q97.5` 只做 smoke。
+- 当前更看重 `norm_SDS`、rank stability、已知 peak 的方向一致性；raw `rSDS` 主要作为 diagnostic，不作为主要 paper-facing statistic。
+- Chinese-specific peak 的正式定义应和既有文献的 threshold 对齐；弱信号更适合用 tSDS / summary-statistics 层面的 aggregate evidence，而不是直接给单点下结论。
 
-### GWAS Overlap  
+## 6. Immediate Gaps
 
-### Archaic Genome Introgression      
-
-看看 SDS 信号好的位点是否富集在尼安德特人的基因  
-
-参考：[Quantifying the contribution of Neanderthal introgression to the heritability of complex traits | Nature Communications](https://www.nature.com/articles/s41467-021-24582-y)  
-
-# Methods  
-
-## 1. Data    
-
-### 1.1 1st QC  
-
-参考：[[QC-11.7]]   
-
-### 1.2 2nd QC  
-
-保留 4025 样本  
-剔除 Bankok 人群  
-最终剩余 1255+2716=3971 样本
-
-## 2. Singleton Counts  
-
-南方人群的 singleton counts 少于北方人 -> ==为什么？==  
-
-$\implies$ 需要**分人群计算 SDS**  
-
-## 3. Ancestry Sturcture    
-
-### Neural-Admixture  
-
-nadm 有两种模式，一种是 train 一种是 infer。train 可以选择 supervised 或者 unsupervised，unsupervised 更类似于 clustering，需要预先制定超参数 $k$。  
-
-Unsupervised learning 选择了 $k=2\sim 20$，评估表征，最终选择 $k=4$，以 `comp 3` 第四个祖源成分作为分群依据，`0.35` 作为 threshold，`>0.35` 标志北方。  
-
-## 4. Demographic History  
-
-### SMC++  
-
-### Phlash  
-
-## 5. SDS  
-
-### Norm SDS  
-
-### tSDS  
-
-## 6. iHS  
-
-After QC, collected about more than 3.9k WGS samples for downstream analysis.  
-
-Want to compute the Singleton Density Score to see what are the recent positively selected regions, and see if there is any overlap with the SLE or other disease risk alleles. Thus we can tell a story of phylogeny, that why the risk alleles are still preserved because of some phylogenic advantage.  
-
-Before compute the SDS, we should prepare the SDS input files. We need an s file, a t file, an o file, a b file, and a g file.  
-
-The vcf files are all stored at `/share/home/grp-wangyf/xuyuan/sds/plink/smc_vcfs`.  
-
-The inputs are all stored at `/share/home/grp-wangyf/xuyuan/sds/data/processed/sds_input`.
-
-### EHH  
-
-## 7. Relate + CLUES2  
+- 需要把 meta analysis 的输入、输出、overlap 结果文件路径补进 `logs/meta_overlap` 和 `logs/result_index.md`。
+- 需要把 iHS / EHH 的显著区域表、gene label 输出和关键图补进 `SDSlog`。
+- 需要把 Relate + CLUES2 的关键结果文件、图和参数补进 `SDSlog`。
+- 需要在最终写文章前核对 genome-wide postprocess summary 中阈值记录的差异。
