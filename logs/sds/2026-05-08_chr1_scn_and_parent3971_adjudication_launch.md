@@ -46,6 +46,8 @@ Scripts / commands / job IDs:
   - `484774`: `SCN_chr1_olddefault_submitter` (depends on `484772`)
   - `484775`: `MERGED3971_chr1_inputfix_rebuild` (depends on `484773`)
   - `484776`: `MERGED3971_chr1_olddefault_submitter` (depends on `484775`)
+  - `484777`: `SCN_chr1_olddefault_submitter_v3`
+  - `484778`: `MERGED3971_chr1_olddefault_submitter_v3`
 
 Key result files:
 - `/data/home/grp-wangyf/xuyuan/sds/data/processed/sds_output_inputfix_olddefault_chr1/NCN/review/NCN.summary.tsv`
@@ -56,9 +58,9 @@ Conclusion:
 - `SCN` 和 `MERGED3971` 需要用同一套 fixed input contract 跑 chr1，对称比较 `peak125`、`peak143` 和 `control35`。
 - 现有手工单行 merge 命令不可靠：生成出的 `MERGED3971 chr1 VCF` 没有 BGZF EOF marker，也没有索引。已改成 `part.vcf.gz -> index -> atomic move` 的流程。
 - compute/review 改成依赖式 submitter，不再手工等 `FINAL_JOB`。
+- 第一次自动依赖提交没有真正发出 compute，因为 `/data/home/grp-wangyf/xuyuan/sds/scripts/submit_sds_compute_chunked_chr.sh` 缺少执行权限；`484774` 和 `484776` 都以 `Permission denied` 退出。
+- `SCN` input rebuild (`484772`) 与 `MERGED3971` input rebuild (`484775`) 都已成功完成；执行权限修复后，compute/review 已经通过 `484777` 和 `484778` 重新提交。
 
 Next step:
-- 等 `484772` 和 `484773` 完成。
-- 若 `484773` 成功，自动重建 `MERGED3971` input 并接上 old/default chr1 compute + review。
-- 若 `484772` 成功，自动提交 `SCN` chr1 old/default compute + review。
+- 等 `484777` 和 `484778` 真正发出 chr1 chunked compute / merge / review job graph。
 - 三条轨道齐后，统一比较 `NCN` / `SCN` / `MERGED3971` 在 `peak125`、`peak143`、`control35` 的 `max_abs_rSDS` 和 top hits。
