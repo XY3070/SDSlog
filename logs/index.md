@@ -4,7 +4,7 @@
 | --- | --- | --- | --- | --- |
 | `cohort_qc` | sample QC、population split、freeze decision | No detailed log yet | backfill needed | 先补 1st / 2nd QC 和 NCN / SCN split 的文件路径 |
 | `demography` | phlash、SMC++、Relate、recent `Ne` comparison | [2026-04-23_ncn_recent_ne_benchmark.md](demography/2026-04-23_ncn_recent_ne_benchmark.md) | active | 首批 benchmark 文件和关键图已登记 |
-| `sds` | genome-wide scan、postprocess、single-SNP sensitivity、region panel | [2026-05-08_chr1_scn_and_parent3971_adjudication_launch.md](sds/2026-05-08_chr1_scn_and_parent3971_adjudication_launch.md) | active | `NCN` chr1 input-fix 仍未消掉异常窗口，已挂起 `SCN` 和 `MERGED3971` 的对称 adjudication 轨道 |
+| `sds` | genome-wide scan、postprocess、single-SNP sensitivity、region panel | [2026-05-08_chr1_scn_and_parent3971_adjudication_launch.md](sds/2026-05-08_chr1_scn_and_parent3971_adjudication_launch.md) | active | `NCN / SCN / MERGED3971PL` chr1 三轨对照已完成；shared artifact 仍在，下一步需回到更上游的 pre-split site universe |
 | `ihs_ehh` | iHS、EHH、gene label、peak follow-up | [README.md](ihs_ehh/README.md) | backfill needed | 方向已确定，文件和图未系统登记 |
 | `meta_overlap` | meta、GWAS overlap、tSDS | [README.md](meta_overlap/README.md) | backfill needed | 现有结论已写入总览，缺文件级记录 |
 | `relate_clues2` | Relate、CLUES2、selection trajectory | [README.md](relate_clues2/README.md) | backfill needed | 需要 paper-facing 结果与图 |
