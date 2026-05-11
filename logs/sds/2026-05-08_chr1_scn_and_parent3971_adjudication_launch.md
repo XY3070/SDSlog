@@ -24,7 +24,7 @@ Output paths:
 
 Parameters:
 - `chr`: `1`
-- `gamma`: `old/default`
+- `gamma`: `SDS-MODEL-001`
 - `chunk_rows=20000`
 - `array_parallel=64`
 - windows:
@@ -36,6 +36,14 @@ Parameters:
   - `s_file`: subset-specific singleton positions from `PASS + biallelic SNP`, `AC=1`, `F_MISSING<=0.005`
   - `o_file`: single-row all `1`
 - `MERGED3971` uses the same input contract after merging chr1 VCFs.
+
+## Demographic model
+
+- `Demographic model=SDS-MODEL-001 (historical_olddefault_gamma_table)`
+- `Gamma shape source=/data/home/grp-wangyf/xuyuan/sds/g_file.txt`
+- `Present-day Ne(0)=implicit / unknown from historical file provenance`
+- `Model role=audit-only`
+- `Model note=这里比较的是 NCN / SCN / merged 的 input lineage，不是新的 demographic model；后半段的 MERGED3971PL 也只是 lineage 补救，不是新的 gamma`
 
 Scripts / commands / job IDs:
 - added scripts:
@@ -64,7 +72,7 @@ Conclusion:
 - compute/review 改成依赖式 submitter，不再手工等 `FINAL_JOB`。
 - 第一次自动依赖提交没有真正发出 compute，因为 `/data/home/grp-wangyf/xuyuan/sds/scripts/submit_sds_compute_chunked_chr.sh` 缺少执行权限；`484774` 和 `484776` 都以 `Permission denied` 退出。
 - `SCN` input rebuild (`484772`) 与 `MERGED3971` input rebuild (`484775`) 都已成功完成；执行权限修复后，compute/review 已经通过 `484777` 和 `484778` 重新提交。
-- `SCN` chr1 old/default 已完成，窗口 summary 为：
+- `SCN` chr1 `SDS-MODEL-001` 轨道已完成，窗口 summary 为：
   - `peak125`: `row_count=0`
   - `peak143`: `row_count=0`
   - `control35`: `row_count=5542`, `max_abs_rSDS=13.3459`
@@ -100,7 +108,7 @@ Output paths:
 
 Parameters:
 - `chr=1`
-- `gamma=old/default`
+- `gamma=SDS-MODEL-001`
 - `chunk_rows=20000`
 - `array_parallel=64`
 - `MERGED3971PL s_file` construction:
@@ -108,6 +116,14 @@ Parameters:
   - query the opposite cohort VCF for each singleton position
   - drop positions that are observed as variant in the opposite cohort
   - keep only positions unique to one side, then concatenate to `3971` rows
+
+## Demographic model
+
+- `Demographic model=SDS-MODEL-001 (historical_olddefault_gamma_table)`
+- `Gamma shape source=/data/home/grp-wangyf/xuyuan/sds/g_file.txt`
+- `Present-day Ne(0)=implicit / unknown from historical file provenance`
+- `Model role=audit-only`
+- `Model note=MERGED3971PL 对应 registry 中的 SDS-MODEL-004 lineage context；它继承 SDS-MODEL-001，不是新的 gamma model`
 
 Scripts / commands / job IDs:
 - added:

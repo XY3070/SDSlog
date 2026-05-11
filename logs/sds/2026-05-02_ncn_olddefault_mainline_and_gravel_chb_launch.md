@@ -1,9 +1,9 @@
-# NCN old/default mainline and `Gravel_CHB@100k` launch
+# NCN `SDS-MODEL-001` mainline and `SDS-MODEL-003` launch
 
 Date: 2026-05-02
 Topic: sds
 Type: production
-Question: 在 phlash-derived `100k` run 被降级为 sensitivity 之后，是否已经把 mainline 切回 old/default gamma，并启动 `Gravel_CHB@100k` 的并行 gamma 生成与 downstream compute？
+Question: 在 `SDS-MODEL-002` 被降级为 sensitivity 之后，是否已经把 mainline 切回 `SDS-MODEL-001`，并启动 `SDS-MODEL-003` 的并行 gamma 生成与 downstream compute？
 
 ## Input paths
 
@@ -55,6 +55,14 @@ Question: 在 phlash-derived `100k` run 被降级为 sensitivity 之后，是否
 - `phlash_scaled_100k_jobs=484533,484534`
 - `phlash_scaled_100k_role=sensitivity_only`
 
+## Demographic model
+
+| Track | Demographic model | Gamma shape source | Present-day `Ne(0)` | Role | Note |
+| --- | --- | --- | --- | --- | --- |
+| `olddefault_mainline` | `SDS-MODEL-001` | `/data/home/grp-wangyf/xuyuan/sds/g_file.txt` | `implicit / unknown from historical file provenance` | `mainline` | 这条线只确认 shape file，不额外声称 explicit `Ne(0)` |
+| `gravel_chb_ne100k` | `SDS-MODEL-003` | `/data/home/grp-wangyf/xuyuan/sds/tmp/gravel_chb_gamma_ne100k_20260502/gravel_chb_present100000.g_file.txt` | `100000` | `rejected` | sensitivity / compare only |
+| `phlash_scaled_ne100k` | `SDS-MODEL-002` | `/data/home/grp-wangyf/xuyuan/sds/tmp/region_ne0_positive_20260426/scaled_ne0_100000/scaled_ne0_100000.minimal_g.tsv` | `100000` | `rejected` | 在这条记录里只作为 compare companion |
+
 ## Scripts / commands / job IDs
 
 - `bash /data/home/grp-wangyf/xuyuan/sds/scripts/run_sds_compute.sh --pop NCN --chr 4 --test --out-root /data/home/grp-wangyf/xuyuan/sds/data/processed/sds_output_olddefault_mainline --g-file /data/home/grp-wangyf/xuyuan/sds/g_file.txt --force`
@@ -89,15 +97,15 @@ Question: 在 phlash-derived `100k` run 被降级为 sensitivity 之后，是否
 
 ## Conclusion
 
-- mainline 已从 phlash-derived gamma 切回 old/default `g_file.txt`；phlash `100k` run 继续跑完，但只保留 sensitivity 身份。
-- old/default `chr4 --test` smoke 已跑通，`chr4.sds.tsv` 已写入独立 output root，避免覆盖 baseline。
-- `Gravel_CHB@100k` 的 chunked gamma 任务图和 dependent compute 已全部提交，当前 bottleneck 已转为集群排队与 chunk 完成速度，而不是串行 gamma 生成。
+- mainline 已从 `SDS-MODEL-002` 切回 `SDS-MODEL-001`；`SDS-MODEL-002` 继续跑完，但只保留 sensitivity 身份。
+- `SDS-MODEL-001` 的 `chr4 --test` smoke 已跑通，`chr4.sds.tsv` 已写入独立 output root，避免覆盖 baseline。
+- `SDS-MODEL-003` 的 chunked gamma 任务图和 dependent compute 已全部提交，当前 bottleneck 已转为集群排队与 chunk 完成速度，而不是串行 gamma 生成。
 - 三条轨道的 postprocess 后诊断任务也已全部挂好依赖；`normalized.tsv` 一出来就会自动产出 chromosome tail-count、top-hit 和 dense-peak window summary。
 - 三条轨道的 cross-track compare 也已排队；三个 diagnostics 完成后会自动生成 merged summary，不需要再手工比对三个目录。
 - compare 链第一次没有跑起来不是因为结果文件缺失，而是因为 diagnostics 用错了解释器；`v2` 已改成 `sds` 环境 Python 并重新提交。
 
 ## Next step
 
-- 等 `484541/484542` 产出 old/default genome-wide `normalized.tsv` 和 Manhattan。
+- 等 `484541/484542` 产出 `SDS-MODEL-001` genome-wide `normalized.tsv` 和 Manhattan。
 - 等 `484535/484536/484537` 产出 `gravel_chb_present100000.g_file.txt`，随后检查 `484538/484539` 是否自动开始。
 - 三条轨道结果齐全后，统一比较 Manhattan null shape、chr1 tower 和已知 positive peaks 的 local clustering。

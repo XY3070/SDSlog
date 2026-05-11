@@ -3,7 +3,7 @@
 Date: 2026-05-03
 Topic: sds
 Type: summary
-Question: `old/default`、`Gravel_CHB@100k`、phlash-derived `scaled_ne0_100000` 三条 gamma 轨道里，哪一条的 norm SDS Manhattan plot 最接近 real biology，哪两条应废弃？
+Question: `SDS-MODEL-001`、`SDS-MODEL-003`、`SDS-MODEL-002` 三条 gamma 轨道里，哪一条的 norm SDS Manhattan plot 最接近 real biology，哪两条应废弃？
 
 ## Input paths
 
@@ -44,6 +44,14 @@ Question: `old/default`、`Gravel_CHB@100k`、phlash-derived `scaled_ne0_100000`
 - `olddefault_top_chr1_window=143200001-143300000 hits=117 max=115.7976199`
 - `olddefault_second_chr1_window=125100001-125200000 hits=86 max=146.0615389`
 
+## Demographic model
+
+| Track | Demographic model | Gamma shape source | Present-day `Ne(0)` | Role | Note |
+| --- | --- | --- | --- | --- | --- |
+| `olddefault` | `SDS-MODEL-001` | `/data/home/grp-wangyf/xuyuan/sds/g_file.txt` | `implicit / unknown from historical file provenance` | `mainline` | 当前唯一保留的主线 |
+| `gravel_chb_ne100k` | `SDS-MODEL-003` | `/data/home/grp-wangyf/xuyuan/sds/tmp/gravel_chb_gamma_ne100k_20260502/gravel_chb_present100000.g_file.txt` | `100000` | `rejected` | `Gravel_CHB` shape，biology compare 未通过 |
+| `phlash_scaled_ne100k` | `SDS-MODEL-002` | `/data/home/grp-wangyf/xuyuan/sds/tmp/region_ne0_positive_20260426/scaled_ne0_100000/scaled_ne0_100000.minimal_g.tsv` | `100000` | `rejected` | phlash `q50` shape，biology compare 未通过 |
+
 ## Scripts / commands / job IDs
 
 - `job 484559`: `sds_olddefault_diag_v2`
@@ -67,13 +75,13 @@ Question: `old/default`、`Gravel_CHB@100k`、phlash-derived `scaled_ne0_100000`
 
 ## Conclusion
 
-- `old/default` 明显优于另外两条线。Manhattan 主体接近“多数点贴近基线、只有少数局部 cluster”的形状；全基因组 common-variant extreme-hit totals 只有 `583 / 205 / 62 / 2`，对应 `>=8 / >=20 / >=50 / >=100`。
-- `Gravel_CHB@100k` 和 phlash-derived `100k` 都不符合 real biology。两者都有明显 diffuse tail 和大量高悬散点；`Gravel_CHB@100k` 的 extreme-hit totals 达到 `4545 / 3839 / 2714 / 1498`，phlash-derived `100k` 达到 `9717 / 3337 / 1129 / 483`。
-- `old/default` 还没有完全过关：最主要的剩余问题是 chr1 上两个强局部峰，分别在 `143.2-143.3 Mb` 和 `125.1-125.2 Mb`。它们是局部 cluster，不是全基因组 diffuse manifestation，但仍需 locus-level audit 后才能作为 paper-facing biology signal 使用。
-- low-MAF normalization 也支持废弃 phlash / `Gravel_CHB@100k`：`[0.01,0.02)` bin 中 old/default 的 `sd=0.277`，而 phlash-derived `100k` 的 `sd=6.026`、`mean=1.675`，`Gravel_CHB@100k` 的 `sd=0.638`，都显示 recent-demography gamma 对低频 bin 造成了明显扭曲。
+- `SDS-MODEL-001` 明显优于另外两条线。Manhattan 主体接近“多数点贴近基线、只有少数局部 cluster”的形状；全基因组 common-variant extreme-hit totals 只有 `583 / 205 / 62 / 2`，对应 `>=8 / >=20 / >=50 / >=100`。
+- `SDS-MODEL-003` 和 `SDS-MODEL-002` 都不符合 real biology。两者都有明显 diffuse tail 和大量高悬散点；`SDS-MODEL-003` 的 extreme-hit totals 达到 `4545 / 3839 / 2714 / 1498`，`SDS-MODEL-002` 达到 `9717 / 3337 / 1129 / 483`。
+- `SDS-MODEL-001` 还没有完全过关：最主要的剩余问题是 chr1 上两个强局部峰，分别在 `143.2-143.3 Mb` 和 `125.1-125.2 Mb`。它们是局部 cluster，不是全基因组 diffuse manifestation，但仍需 locus-level audit 后才能作为 paper-facing biology signal 使用。
+- low-MAF normalization 也支持废弃 `SDS-MODEL-002` / `SDS-MODEL-003`：`[0.01,0.02)` bin 中 `SDS-MODEL-001` 的 `sd=0.277`，而 `SDS-MODEL-002` 的 `sd=6.026`、`mean=1.675`，`SDS-MODEL-003` 的 `sd=0.638`，都显示 recent-demography gamma 对低频 bin 造成了明显扭曲。
 
 ## Next step
 
-- 冻结 old/default 为当前 mainline，phlash-derived `100k` 与 `Gravel_CHB@100k` 都降级为 rejected sensitivity。
-- 对 old/default 的 chr1 `125.1 Mb` 和 `143.2 Mb` 两个窗口做 locus-level audit，优先检查是否和已知 ADH 之外的输入特征、局部 singletons、recombination 或 sample split artifact 相关。
-- 后续 Manhattan、GWAS overlap、candidate locus 解读统一基于 old/default mainline，不再用 phlash 或 `Gravel_CHB@100k` 版本做主图。
+- 冻结 `SDS-MODEL-001` 为当前 mainline，`SDS-MODEL-002` 与 `SDS-MODEL-003` 都降级为 rejected sensitivity。
+- 对 `SDS-MODEL-001` 下 chr1 `125.1 Mb` 和 `143.2 Mb` 两个窗口做 locus-level audit，优先检查是否和已知 ADH 之外的输入特征、局部 singletons、recombination 或 sample split artifact 相关。
+- 后续 Manhattan、GWAS overlap、candidate locus 解读统一基于 `SDS-MODEL-001`，不再用 `SDS-MODEL-002` 或 `SDS-MODEL-003` 版本做主图。

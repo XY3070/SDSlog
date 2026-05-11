@@ -4,7 +4,7 @@ Date: 2026-05-07
 Topic: `sds`
 Type: `test`
 
-Question: 当前 `NCN` split 后 input 是否已经修到符合 official SDS input contract，并且能否用修正后的 chr1 input 直接挂一条 chunked old/default compute 链，自动回看 `125.1 Mb`、`143.2 Mb` 和 control window？
+Question: 当前 `NCN` split 后 input 是否已经修到符合 official SDS input contract，并且能否用修正后的 chr1 input 直接挂一条 `SDS-MODEL-001` chunked compute 链，自动回看 `125.1 Mb`、`143.2 Mb` 和 control window？
 
 Input paths:
 - `/data/home/grp-wangyf/xuyuan/sds/data/vcf/NCN/UKBQC_NCN_chr1.vcf.gz`
@@ -29,11 +29,19 @@ Parameters:
 - `o_file`: single-row all `1`
 - `test input outdir`: `data/processed/sds_input/test/NCN`
 - `production chr1 chunking`: `chunk_rows=20000`, `array_parallel=64`
-- `gamma`: `old/default`
+- `gamma`: `SDS-MODEL-001`
 - review windows:
   - `peak125=125100001-125200000`
   - `peak143=143200001-143300000`
   - `control35=35735220-36063259`
+
+## Demographic model
+
+- `Demographic model=SDS-MODEL-001 (historical_olddefault_gamma_table)`
+- `Gamma shape source=/data/home/grp-wangyf/xuyuan/sds/g_file.txt`
+- `Present-day Ne(0)=implicit / unknown from historical file provenance`
+- `Model role=mainline`
+- `Model note=这条记录只改变 input contract，不改变 demographic model；input-fix 不是新的 gamma 轨道`
 
 Scripts / commands / job IDs:
 - patched scripts:
@@ -70,7 +78,7 @@ Conclusion:
     - `143.2 Mb`: expected `736`, observed `736`
     - `35.7 Mb control`: expected `2502`, observed `2502`
 - `run_sds_input.sh --test` 现在会写到 `data/processed/sds_input/test/NCN`，不再覆盖正式 input。
-- chr1 old/default chunked compute 已提交，review job 会在 `chr1.sds.tsv` 合并后自动输出三个窗口的 summary 和 top hits。
+- chr1 `SDS-MODEL-001` chunked compute 已提交，review job 会在 `chr1.sds.tsv` 合并后自动输出三个窗口的 summary 和 top hits。
 
 Next step:
 - 等 `484739` 和 `484741` 完成，第一时间检查：

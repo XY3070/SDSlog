@@ -22,6 +22,14 @@ Question: <This record answers what?>
 
 - `key=value`
 
+## Demographic model
+
+- `Demographic model=<registry name or Model ID>`
+- `Gamma shape source=<absolute path or inherited model ID>`
+- `Present-day Ne(0)=<numeric | implicit / unknown from historical file provenance>`
+- `Model role=<mainline | sensitivity | rejected | audit-only>`
+- `Model note=<one-line reason or caveat>`
+
 ## Scripts / commands / job IDs
 
 - `<script path>`

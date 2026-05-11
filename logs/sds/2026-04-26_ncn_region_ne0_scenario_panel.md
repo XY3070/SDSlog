@@ -27,6 +27,14 @@ Question: 用于 positive-region follow-up 的 `Ne(0)` scenario panel 具体有�
 - `smoke_only=q97.5`
 - `interval_eligible_main=6`
 
+## Demographic model
+
+- `Model family=SDS-MODEL-005 (region_ne0_panel_family)`
+- `Gamma shape source=/data/home/grp-wangyf/xuyuan/sds/tmp/region_ne0_positive_20260426/scenario_manifest.tsv`
+- `Present-day Ne(0)=mixed by scenario`
+- `Model role=audit-only`
+- `Model note=这里不是单一 production gamma；包含 phlash posterior context、scaled Ne(0) main panel、高侧 diagnostics 和 smoke`
+
 ## Scripts / commands / job IDs
 
 - `/data/home/grp-wangyf/xuyuan/sds/tmp/region_ne0_positive_20260426/parallel_submit/task_plan.tsv`

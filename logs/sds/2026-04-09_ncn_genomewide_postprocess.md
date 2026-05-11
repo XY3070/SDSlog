@@ -28,6 +28,14 @@ Question: 当前 NCN genome-wide SDS postprocess 产出了哪些主结果文件�
 - `normalized_rows=41225226 data lines`
 - `significant_region_rows=2703 data lines`
 
+## Demographic model
+
+- `Demographic model=SDS-MODEL-001 (historical_olddefault_gamma_table)`
+- `Gamma shape source=/data/home/grp-wangyf/xuyuan/sds/g_file.txt`
+- `Present-day Ne(0)=implicit / unknown from historical file provenance`
+- `Model role=mainline`
+- `Model note=这是项目历史沿用的预计算 gamma table；当前不能把它记成显式 Ne(0)=100k`
+
 ## Scripts / commands / job IDs
 
 - `/data/home/grp-wangyf/xuyuan/sds/logs/postprocess_sds_20260409_032753.log`

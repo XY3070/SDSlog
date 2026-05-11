@@ -4,7 +4,7 @@ Date: 2026-05-10
 Topic: `sds`
 Type: `test`
 
-Question: 在 raw joint `chr1` 上，用 header-intersection 样本直接生成 `NCN`、`SCN`、`MERGED3971` 三套正式 input，并挂起 old/default 的 chr1 三轨 compare。目标是绕开 split-then-merge 导致的 pseudo-missing，直接验证 true process 下 merged 轨道是否可用。
+Question: 在 raw joint `chr1` 上，用 header-intersection 样本直接生成 `NCN`、`SCN`、`MERGED3971` 三套正式 input，并挂起 `SDS-MODEL-001` 的 chr1 三轨 compare。目标是绕开 split-then-merge 导致的 pseudo-missing，直接验证 true process 下 merged 轨道是否可用。
 
 Input paths:
 - `/data/home/grp-wangyf/xuyuan/raw/4197samples.chr1.splitted.rmDup.LeftAligned.setID.reheader.DP5GQ20.vcf.gz`
@@ -34,13 +34,21 @@ Parameters:
   - `s_file`: subset-specific `PASS + biallelic SNP + AC=1 + F_MISSING<=0.005`
   - `o_file`: single row all `1`
 - compute contract:
-  - gamma: `old/default`
+  - gamma: `SDS-MODEL-001`
   - `chunk_rows=20000`
   - `array_parallel=64`
 - review windows:
   - `peak125=125100001-125200000`
   - `peak143=143200001-143300000`
   - `control35=35735220-36063259`
+
+## Demographic model
+
+- `Demographic model=SDS-MODEL-001 (historical_olddefault_gamma_table)`
+- `Gamma shape source=/data/home/grp-wangyf/xuyuan/sds/g_file.txt`
+- `Present-day Ne(0)=implicit / unknown from historical file provenance`
+- `Model role=audit-only`
+- `Model note=raw-joint 只改变 input source；true-process merged 不是新的 demographic model，也不是 explicit Ne(0)=100k track`
 
 Scripts / commands / job IDs:
 - `/data/home/grp-wangyf/xuyuan/sds/scripts/build_raw_header_intersection_sample_list.sh`
@@ -52,7 +60,7 @@ Scripts / commands / job IDs:
   - `484986`: raw chr1 index
   - `484987`: raw-joint chr1 input smoke
   - `484988`: raw-joint chr1 full input build
-  - `484989`: dependent launcher for old/default three-track compare
+  - `484989`: dependent launcher for `SDS-MODEL-001` three-track compare
   - `484993`: first full launcher, later invalidated by chunk cache race
   - `485013`: cache-fix relaunch (`v2`)
 
@@ -79,7 +87,7 @@ Conclusion:
   - `NCN`: `76151`
   - `SCN`: `76252`
   - `MERGED3971`: `76283`
-- 目前 full input build `484988` 和 dependent compare launcher `484989` 已提交，下一步等三轨 old/default review 结果落盘。
+- 目前 full input build `484988` 和 dependent compare launcher `484989` 已提交，下一步等三轨 `SDS-MODEL-001` review 结果落盘。
 - `484988` 已完成，full raw-joint chr1 input 三套都已成功生成：
   - `NCN`
   - `SCN`

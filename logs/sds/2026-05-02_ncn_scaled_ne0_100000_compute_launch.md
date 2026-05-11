@@ -37,6 +37,14 @@ Question: 现有 `scaled_ne0_100000` 的 full gamma pieces 能否直接组装成
 - `array_concurrency=6`
 - `threads_per_task=2`
 
+## Demographic model
+
+- `Demographic model=SDS-MODEL-002 (phlash_q50_scaled_ne100k)`
+- `Gamma shape source=/data/home/grp-wangyf/xuyuan/sds/tmp/region_ne0_positive_20260426/scaled_ne0_100000/scaled_ne0_100000.minimal_g.tsv`
+- `Present-day Ne(0)=100000`
+- `Model role=rejected`
+- `Model note=shape 来自 phlash q50 curve，显式缩放到 Ne(0)=100000；这条轨道后续被 gamma-track compare 否决`
+
 ## Scripts / commands / job IDs
 
 - `/data/home/grp-wangyf/xuyuan/sds/scripts/benchmark_adh_ne0.py --resume-outdir /data/home/grp-wangyf/xuyuan/sds/tmp/region_ne0_positive_20260426 --scenario-include scaled_ne0_100000 --skip-high-diagnostics --skip-q97p5-smoke --finalize-only`

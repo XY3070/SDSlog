@@ -37,6 +37,13 @@ Parameters:
   - `control35 = chr1:35735220-36063259`
 - note: 这是 chr1-local pseudo-significance，用于轨道间形态比较，不是 paper-facing genome-wide `p`
 
+## Demographic model
+
+| Track group | Demographic model | Gamma shape source | Present-day `Ne(0)` | Role | Note |
+| --- | --- | --- | --- | --- | --- |
+| `raw_joint_v2` | `SDS-MODEL-001` | `/data/home/grp-wangyf/xuyuan/sds/g_file.txt` | `implicit / unknown from historical file provenance` | `audit-only` | raw-joint 只改变 input lineage |
+| `legacy_adjudication` | `SDS-MODEL-001` | `/data/home/grp-wangyf/xuyuan/sds/g_file.txt` | `implicit / unknown from historical file provenance` | `audit-only` | `MERGED3971PL` 只改变 parent-like merged lineage |
+
 Scripts / commands / job IDs:
 - `/data/home/grp-wangyf/xuyuan/sds/scripts/normalize_chr1_local_sds.py`
 - `/data/home/grp-wangyf/xuyuan/sds/scripts/report_chr1_compare_manhattan.R`

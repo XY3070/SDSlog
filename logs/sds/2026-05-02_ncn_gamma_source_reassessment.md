@@ -31,6 +31,14 @@ Question: 目前 split-cohort SDS 主线是否应继续使用 phlash-derived gam
 - `phlash_scaled_100k_postprocess_job=484534`
 - `phlash_scaled_100k_role=sensitivity_only`
 
+## Demographic model
+
+| Track | Demographic model | Gamma shape source | Present-day `Ne(0)` | Role | Note |
+| --- | --- | --- | --- | --- | --- |
+| `old_default_anchor` | `SDS-MODEL-001` | `/data/home/grp-wangyf/xuyuan/sds/g_file.txt` | `implicit / unknown from historical file provenance` | `mainline` | 当前应切回的主线 |
+| `phlash_current_gamma` | `phlash current q50-like shape` | `/data/home/grp-wangyf/xuyuan/ms/scripts/sds_input.gamma_shapes.NCN.final` | `1743549.3215311412` | `audit-only` | 这是当时正在使用的 phlash 形状文件，不应再混写成 old/default |
+| `phlash_scaled_ne100k` | `SDS-MODEL-002` | `/data/home/grp-wangyf/xuyuan/sds/tmp/region_ne0_positive_20260426/scaled_ne0_100000/scaled_ne0_100000.minimal_g.tsv` | `100000` | `rejected` | 只保留为 sensitivity/reference |
+
 ## Scripts / commands / job IDs
 
 - `bjobs 484533 484534`

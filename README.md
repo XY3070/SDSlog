@@ -14,6 +14,7 @@
 3. 关键图必须 copy 到 `plots/`，并在 [plots/plot_index.md](plots/plot_index.md) 里登记原始 absolute path。
 4. 关键结果文件默认只登记路径，不把大文件复制进 `SDSlog`。
 5. 语言以中文为主，必要 terminology 用 English；只写 concise and precise 的事实，不写含混术语。
+6. 对所有 SDS 结果，必须记录 `Demographic model`、`Gamma shape source`、`Present-day Ne(0)`、`Model role`；标准名字统一见 [logs/sds/README_demographic_models.md](logs/sds/README_demographic_models.md)。
 
 ## Entry Points
 
@@ -46,5 +47,6 @@
 1. 先完成测试或生产。
 2. 把关键结果文件路径写进 [logs/result_index.md](logs/result_index.md)。
 3. 把关键图 copy 进 `plots/`，并更新 [plots/plot_index.md](plots/plot_index.md)。
-4. 用 [logs/_log_template.md](logs/_log_template.md) 新建一条 detailed log。
-5. 如有新的方法学决策或项目主线变化，再更新 [SDS Chinese Cohort.md](SDS%20Chinese%20Cohort.md) 和 [SDS log.md](SDS%20log.md)。
+4. 若是 SDS 结果，先在 [logs/sds/README_demographic_models.md](logs/sds/README_demographic_models.md) 里确认 model / gamma / `Ne(0)` 口径，再写 result index 和 plot index。
+5. 用 [logs/_log_template.md](logs/_log_template.md) 新建一条 detailed log。
+6. 如有新的方法学决策或项目主线变化，再更新 [SDS Chinese Cohort.md](SDS%20Chinese%20Cohort.md) 和 [SDS log.md](SDS%20log.md)。

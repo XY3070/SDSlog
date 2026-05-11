@@ -27,6 +27,15 @@ Question: `chr4:99317841:T:C` 的 raw `rSDS` 对 gamma shape 和 constant `Ne` �
 - `baseline_raw_rSDS=1.1458`
 - `baseline_norm_SDS=3.3155`
 
+## Demographic model
+
+- `Control model=SDS-MODEL-001 (historical_olddefault_gamma_table)`
+- `Control gamma shape source=/data/home/grp-wangyf/xuyuan/sds/g_file.txt`
+- `Control present-day Ne(0)=implicit / unknown from historical file provenance`
+- `Scenario family=SDS-MODEL-005 (region_ne0_panel_family)`
+- `Model role=audit-only`
+- `Model note=q2.5/q25/q50/q75/q97.5 是 phlash posterior context；constNe152000 是显式 constant Ne(0)=152000；这条记录是 sensitivity，不是主 production track`
+
 ## Scripts / commands / job IDs
 
 - `/data/home/grp-wangyf/xuyuan/sds/scripts/scan_single_snp_gamma_sensitivity.py`
