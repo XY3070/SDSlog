@@ -34,6 +34,15 @@ Executive summary
    - `NCN` vs `SCN`
 4. `pop-split` 的 merged 重建目前最强证据来自 chr1 审计，不是全基因组 `CMplot`。
 
+Evidence strength by factor
+
+| Factor | Current evidence strength | Why |
+| --- | --- | --- |
+| `SDS input` | strong | 既有 same-cohort / same-model 的 old vs new input 全基因组 `CMplot`，也有 chr1+chr6 的 targeted lineage audit |
+| `demographic model` | strong | 既有 same old input 的 `olddefault / phlash / Gravel` 全基因组对照，也有 same new input 的 `olddefault` vs `Gravel` 对照 |
+| `pop-split` | medium | 有 `NCN` vs `SCN` 的全基因组 `CMplot`，但 merged 语义最强证据仍来自 chr1 local compare / raw-joint audit |
+| `Ne(0)` | weak-to-medium | 现成材料足够说明 `Ne(0)` 会影响数值，但除 `100000` 外，没有多 `Ne(0)` 的全基因组 `CMplot` 平行对照 |
+
 Models and labels used in this report
 
 | Label | Demographic model | Gamma shape source | `Ne(0)` | Input label | Population label |
@@ -109,6 +118,10 @@ Current conclusion
 
 - `Ne(0)` 会影响 `rSDS` 数值；
 - 但现阶段没有证据支持“单独改 `Ne(0)` 就能把 plausible 图变成 diffuse tail”。
+- 更具体地说，当前仓库里：
+  - 有全基因组 Manhattan / `CMplot` 的显式 `Ne(0)` production track 只有 `100000`；
+  - `152k/250k/500k/750k/1e6` 等主要还是 region / single-site sensitivity；
+  - 因此 `Ne(0)` 这条线在汇报里应表述为“数值敏感，但图证层级低于另外三条”。
 
 ## 3. `demographic model`
 
@@ -129,6 +142,63 @@ Current conclusion
 
 - `demographic model` 不是完全无关；
 - 但它更像 **amplifier**，不是当前唯一 root cause。
+
+Why some `Gravel_CHB@100k` Manhattan plots look bizarre
+
+以 `/data/home/grp-wangyf/xuyuan/sds/data/processed/sds_output_gravel_chb_ne100k_newinput_20260511/NCN/NCN.manhattan_points.tsv` 为例，这类图出现“底层一大坨、中间几乎空掉、上面又悬着一层高点”的原因不是 `CMplot` 画坏了，而是 `p_bothside` 分布本身已经断层：
+
+- `0 <= -log10(p) < 2`: `7,062,320`
+- `2 <= -log10(p) < 5`: `50,723`
+- `5 <= -log10(p) < 8`: `2,021`
+- `8 <= -log10(p) < 10`: `584`
+- `10 <= -log10(p) < 20`: `307`
+- `20 <= -log10(p) < 40`: `21`
+- `40 <= -log10(p) < 60`: `773`
+- `60 <= -log10(p) < 100`: `706`
+- `>=100`: `1,361`
+
+这说明：
+
+1. 这类 `Gravel_CHB@100k + new input` 轨道在 `10-40` 区间几乎没有过渡点；
+2. 但又有大量位点被直接推到 `40+` 的极端尾部；
+3. 其中有 `208` 个点正好等于 `300`，说明 `p_bothside` 已经 underflow 到后处理截顶值；
+4. 这些极端点主要集中在低频 common bins：
+   - `[0.02,0.03)`: `1461`
+   - `[0.01,0.02)`: `567`
+   - `[0.03,0.04)`: `467`
+5. 染色体贡献也高度集中：
+   - `chr6`: `554`
+   - `chr1`: `340`
+   - `chr2`: `212`
+   - `chr9`: `210`
+   - `chr15`: `194`
+
+因此这类“中间空一层”的 Manhattan 不是 plotting artifact，而是 normalized result 本身已经不 plausible。
+
+Code-level mechanism
+
+- `compute_SDS.py` 中的 `GammaShapeInterpolator.get_shape()` 对低于 gamma 文件最小频率的所有位点，直接返回第一行 shape；对高于最大频率的位点，直接返回最后一行 shape。
+- 当前两条关键 gamma file 都从 `0.05` 起步：
+  - `historical old/default`: first row = `0.05 -> 0.246827025658222`
+  - `Gravel_CHB@100k`: first row = `0.05 -> 0.7103425643116044`
+- 也就是说，`0.01 < MAF < 0.05` 的所有 low-frequency common variants，在当前实现下都会被边界 clamping 到 `0.05` 的 neutral gamma shape；而 `Gravel_CHB@100k` 的边界 shape 大约是 olddefault 的 `2.88x`。
+- 后处理脚本 `postprocess_sds_results.py` 又把极小 `p` 截到 `1e-300`，因此图上会出现一批正好等于 `300` 的点。
+
+Additional verification: `MAF >= 0.05`
+
+为直接检验这个断层是否主要由 `0.01 < MAF < 0.05` 驱动，又对 `Gravel_CHB@100k + new input` 做了 `MAF >= 0.05` 的独立过滤统计：
+
+- `NCN`
+  - `MAF < 0.05`: `1,946,555` variants, `>=40` tail points = `2,577`, `>=100` = `1,118`
+  - `MAF >= 0.05`: `5,222,576` variants, `>=40` tail points = `76`, `>=20` = `89`, `max -log10(p) = 300`
+- `SCN`
+  - `MAF >= 0.05`: `5,119,756` variants, `>=40` tail points = `0`, `>=20` = `8`, `max -log10(p) = 24.79`
+
+这说明：
+
+1. `NCN` 这张坏图的大部分极端高点确实来自 `MAF < 0.05` 的 low-frequency common variants；
+2. 一旦限制到 `MAF >= 0.05`，`SCN` 的极端上层几乎完全消失；
+3. 因此当前最具体的 technical reason 是：**低频 common bins 在 gamma file 频率覆盖不足时被边界 clamping，再被 `Gravel_CHB@100k` 放大，最终形成两层化的 p-value 分布。**
 
 ## 4. `pop-split`
 
