@@ -51,6 +51,7 @@ Models and labels used in this report
 | `phlash100k_oldinput_NCN` | `SDS-MODEL-002 phlash_q50_scaled_ne100k` | `/data/home/grp-wangyf/xuyuan/sds/tmp/region_ne0_positive_20260426/scaled_ne0_100000/scaled_ne0_100000.minimal_g.tsv` | `100000` | `old` | `NCN` |
 | `gravel100k_oldinput_NCN` | `SDS-MODEL-003 Gravel_CHB_ne100k` | `/data/home/grp-wangyf/xuyuan/sds/tmp/gravel_chb_gamma_ne100k_20260502/gravel_chb_present100000.g_file.txt` | `100000` | `old` | `NCN` |
 | `olddefault_newinput_NCN` | `SDS-MODEL-001 historical_olddefault_gamma_table` | `/data/home/grp-wangyf/xuyuan/sds/g_file.txt` | `implicit / unknown` | `new` | `NCN` |
+| `olddefault_newinput_SCN` | `SDS-MODEL-001 historical_olddefault_gamma_table` | `/data/home/grp-wangyf/xuyuan/sds/g_file.txt` | `implicit / unknown` | `new` | `SCN` |
 | `gravel100k_newinput_NCN` | `SDS-MODEL-003 Gravel_CHB_ne100k` | `/data/home/grp-wangyf/xuyuan/sds/tmp/gravel_chb_gamma_ne100k_20260502/gravel_chb_present100000.g_file.txt` | `100000` | `new` | `NCN` |
 | `gravel100k_newinput_SCN` | `SDS-MODEL-003 Gravel_CHB_ne100k` | `/data/home/grp-wangyf/xuyuan/sds/tmp/gravel_chb_gamma_ne100k_20260502/gravel_chb_present100000.g_file.txt` | `100000` | `new` | `SCN` |
 
@@ -62,6 +63,7 @@ Control-variable experiment master table
 | `SDS input` | same `NCN`, same `SDS-MODEL-001` | `olddefault_oldinput_NCN` vs `olddefault_newinput_NCN` | same gamma track, same cohort | `PLT-SDS-006` vs `PLT-SDS-013` | new input 更规范，但没有恢复出 old/unpop-like 那套更 plausible 的 site universe |
 | `SDS input` + `demographic model` interaction | same `NCN`, same `Gravel_CHB@100k` | `gravel100k_oldinput_NCN` vs `gravel100k_newinput_NCN` | same model, same explicit `Ne(0)=100000` | `PLT-SDS-007` vs `PLT-SDS-011` | `Gravel_CHB@100k` 在两套 input 上都不理想；说明 model 会放大 lineage 差异，但不是唯一主因 |
 | `demographic model` on same new input | same rebuilt `NCN` input | `olddefault_newinput_NCN` vs `gravel100k_newinput_NCN` | same new input, same cohort | `PLT-SDS-013` vs `PLT-SDS-011` | 在同一 input 上，`olddefault` 明显比 `Gravel_CHB@100k` 更 plausible，说明 `Gravel` 在 current input 上是 amplifier |
+| `demographic model` on same new input | same rebuilt `SCN` input | `olddefault_newinput_SCN` vs `gravel100k_newinput_SCN` | same new input, same cohort | `PLT-SDS-014` vs `PLT-SDS-012` | `SCN` 上同样成立；修正 `SAMPLE_SIZE` 只能部分缓解，真正恢复 plausible biology 的是 `olddefault gamma family` |
 | `pop-split` | same rebuilt new input, same `Gravel_CHB@100k` | `gravel100k_newinput_NCN` vs `gravel100k_newinput_SCN` | same gamma track, same explicit `Ne(0)=100000`, same input contract | `PLT-SDS-011` vs `PLT-SDS-012` | `NCN` 更集中出现异常峰，`SCN` 更分散，但两者都不够 plausible；说明问题不是 `NCN` 单独独有 |
 | `Ne(0)` | region / single-SNP sensitivity | `100k`, `152k`, `250k`, `500k`, `750k`, `1e6` 等 | same loci / region panel | no genome-wide `CMplot`; region-level only | `Ne(0)` 会影响 `rSDS` 数值，但目前没有全基因组图证据支持它是坏图主因 |
 | `pop-split` + merged semantics | chr1 targeted adjudication | `NCN`, `SCN`, `MERGED3971PL`, raw-joint merged | same chr1 target windows | `PLT-SDS-009`, `PLT-SDS-010` | merged / split 语义确实会改变 singleton universe，但这条线目前是 chr1 local compare，不是全基因组 Manhattan |
@@ -76,6 +78,7 @@ CMplot figure catalog for reporting
 | `PLT-SDS-011` | [20260522_NCN_sds_gravel_chb_ne100k_newinput_cmplot_v01.png](../../plots/sds/20260522_NCN_sds_gravel_chb_ne100k_newinput_cmplot_v01.png) | `default CHB / Gravel_CHB` | `100000` | `new` | `NCN` | genome-wide official `CMplot` | new-input `NCN` `Gravel` compare |
 | `PLT-SDS-012` | [20260522_SCN_sds_gravel_chb_ne100k_newinput_cmplot_v01.png](../../plots/sds/20260522_SCN_sds_gravel_chb_ne100k_newinput_cmplot_v01.png) | `default CHB / Gravel_CHB` | `100000` | `new` | `SCN` | genome-wide official `CMplot` | pop-split compare |
 | `PLT-SDS-013` | [20260522_NCN_sds_olddefault_newinput_cmplot_v01.png](../../plots/sds/20260522_NCN_sds_olddefault_newinput_cmplot_v01.png) | `old gamma` | `implicit / unknown` | `new` | `NCN` | genome-wide filtered `CMplot` | same new input 下的 olddefault baseline |
+| `PLT-SDS-014` | [20260530_SCN_sds_olddefault_repaired_cmplot_v01.png](../../plots/sds/20260530_SCN_sds_olddefault_repaired_cmplot_v01.png) | `old gamma` | `implicit / unknown` | `new` | `SCN` | genome-wide filtered `CMplot` | repaired `SCN` baseline on same rebuilt input |
 
 Factor-by-factor interpretation
 
@@ -100,6 +103,9 @@ Current conclusion
 
 - `s_file / singleton universe` 是 input 里最关键的变量；
 - rebuilt main-contract input 不是“坏 input”，但它和 old/unpop-like 不是同一个 site universe。
+- 当前 production-facing baseline 应分开表述：
+  - `NCN`: `olddefault + rebuilt input`，保留历史 chr1 主峰，但没有 `Gravel` 式 genome-wide artifact；
+  - `SCN`: `olddefault + rebuilt input`，已完成 genome-wide repair 并恢复到 plausible biology。
 
 ## 2. `Ne(0)`
 
