@@ -50,22 +50,38 @@
 - 当前 cross-track compare 支持正式废弃 `SDS-MODEL-002` 与 `SDS-MODEL-003`：它们都产生了明显 diffuse tail 和过量的极端 common-variant hits；`SDS-MODEL-001` 仍有 chr1 两个强峰，但整体 null shape 最接近 real biology。
 - 当前 `Ne(0)=100k` 的 gamma generation 优先走 chunked parallel path；forced regeneration 时按 `10 frequencies x 10 chunks/frequency = 100 chunk jobs` 展开，再汇总成 `10` 个 canonical full pieces。
 - Chinese-specific peak 的正式定义应和既有文献的 threshold 对齐；弱信号更适合用 tSDS / summary-statistics 层面的 aggregate evidence，而不是直接给单点下结论。
+- **chr1:125.1M 确认为 pericentromeric heterochromatin (1q12 HSATII) 的 mapping artifact**，不应进入 paper-facing biological interpretation，峰内无任何蛋白编码基因。**chr1:143.2M 峰本身也在无基因的 1q12 异染色质内，但紧邻 1q21.1 proximal segmental duplication / TAR susceptibility 区域**（RBM8A 等基因在 ~2 Mb 外），该坐标段落在结构复杂区（BP1-BP4 断点间 recurrent CNV），不能轻率宣称选择信号——即使有真实成分也是 mapping 复杂性与 structural variation 的混合。两个峰都不应作为 paper-facing 正选择证据。
+- **b_file 生成逻辑需要修正**：当前 chr1 和 chr6 的 b_file 把着丝粒区域包含进了 arm 范围（chr1 q-arm 起始在着丝粒内部 252 kb，chr6 q-arm 深入着丝粒 2.3 Mb），导致 satellite DNA 上的 variant 进入 SDS 计算。
+- **SNP input contract 需要扩展**：当前 PASS + biallelic + F_MISSING 过滤不足以排除着丝粒和极端 rare variant 的干扰；需要增加 pericentromeric/subtelomeric mask 和 DAF 下限。
+- **gamma provenance 是当前必须解决的 blocking 问题**：olddefault shape (0.026-0.25) 与 Gravel_CHB@100k shape (0.63-0.71) 相差 3-27 倍，但 olddefault 来源不明且不可复现。在解决 provenance 之前，暂停依赖 olddefault 的新 compute run。
+- **chr6 MHC 区域在所有 baseline 中都没有正选择信号**，与 MHC 是已知人类正选择最强区域的预期矛盾。说明 pipeline 存在"假阳性敏感、假阴性不敏感"的结构性问题。需要用 iHS/EHH 做正交验证。
+- **SCN hybrid-policy rerun 后 recovered-only 窗口的 norm_SDS inflation 是 normalization 层 artifact**，不是真实生物学信号。四个最极端峰（chr1:125M, chr9:61.6M, chr16:46.4M + peak143）全部不在蛋白编码基因上。
 
 ## 5a. Current SDS Model Policy
 
 | Role | Demographic model | Gamma shape source | Present-day `Ne(0)` | Status |
 | --- | --- | --- | --- | --- |
-| Mainline | `historical old/default gamma table` | `/data/home/grp-wangyf/xuyuan/sds/g_file.txt` | `implicit / unknown from historical file provenance` | active |
+| Mainline (provisional, under provenance review) | `historical old/default gamma table` | `/data/home/grp-wangyf/xuyuan/sds/g_file.txt` | `implicit / unknown from historical file provenance` | **active but provenance unresolved** |
 | Sensitivity / rejected | `phlash q50 scaled` | `/data/home/grp-wangyf/xuyuan/sds/tmp/region_ne0_positive_20260426/scaled_ne0_100000/scaled_ne0_100000.minimal_g.tsv` | `100000` | rejected |
 | Sensitivity / rejected | `Gravel_CHB` | `/data/home/grp-wangyf/xuyuan/sds/tmp/gravel_chb_gamma_ne100k_20260502/gravel_chb_present100000.g_file.txt` | `100000` | rejected |
 
+- **2026-06-03 update**: `SDS-MODEL-001` 虽然仍是唯一产出 plausible Manhattan 的轨道，但其 gamma provenance 被识别为未解决的根本问题。olddefault shape 值与 Gravel_CHB@100k 相差 3-27 倍，来源可能是不同 Ne(0)、不同 demography 或不同 gamma generation 方法。在 provenance 明确之前，所有基于 olddefault 的 paper-facing 结论都是 provisional 的。
 - `raw-joint`、`input-fix`、`parent-like` 只描述 input lineage，不是新的 demographic model。
 - 所有 SDS demography provenance 的标准名字和状态统一见 [logs/sds/README_demographic_models.md](logs/sds/README_demographic_models.md)。
 
 ## 6. Immediate Gaps
 
+### Blocking (must resolve before paper-facing conclusions)
+
+- **Gamma provenance**: 追溯 olddefault `g_file.txt` 的确切来源（检查 SDS 原作者的 R 脚本、supplementary、邮件记录）；做 Ne(0) 敏感性扫描确认是 Ne(0) 差异还是 shape 差异；评估 constant Ne baseline。详见 [2026-06-03_pipeline_reflection_bfile_snp_gamma_demography.md](logs/sds/2026-06-03_pipeline_reflection_bfile_snp_gamma_demography.md)。
+- **b_file centromere fix**: 修正 b_file 生成逻辑，显式排除 GRCh38 着丝粒 gap 和 pericentromeric heterochromatin。
+- **SNP input contract expansion**: 增加 pericentromeric/subtelomeric mask 和 DAF 下限。
+- **chr1 peak masking**: 将 chr1:125.1M 和 143.2M 从 paper-facing candidate list 中移除。
+- **chr6 MHC 验证**: 用 iHS/EHH 对 chr6 MHC 做正交验证，确认 SDS pipeline 对该区域是否有 power。
+
+### Backfill (important but not blocking)
+
 - 需要把 meta analysis 的输入、输出、overlap 结果文件路径补进 `logs/meta_overlap` 和 `logs/result_index.md`。
 - 需要把 iHS / EHH 的显著区域表、gene label 输出和关键图补进 `SDSlog`。
 - 需要把 Relate + CLUES2 的关键结果文件、图和参数补进 `SDSlog`。
 - 需要在最终写文章前核对 genome-wide postprocess summary 中阈值记录的差异。
-- 需要对 `SDS-MODEL-001` 下 chr1 的 `125.1 Mb` 和 `143.2 Mb` 两个窗口做 locus-level audit，再决定哪些 peak 可以进入 paper-facing biological interpretation。
