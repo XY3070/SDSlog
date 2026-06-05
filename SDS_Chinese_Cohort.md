@@ -13,10 +13,10 @@
 - 2nd QC 后保留 3971 个 WGS 样本，当前工作记录里 NCN / SCN 为 `1255 + 2716 = 3971`。
 - 当前最近期 demography benchmark 的 NCN eligible sample count 为 `1255`，见 [2026-04-23_ncn_recent_ne_benchmark.md](logs/demography/2026-04-23_ncn_recent_ne_benchmark.md)。
 - 当前主要工作根目录：
-  - `sds/data/vcf`
-  - `sds/data/processed/sds_input`
-  - `sds/data/processed/sds_output`
-  - `benchmark/demography`
+  - `SDSlog/`
+  - `SDSpipeline/`
+  - `SDSworkspace/`
+  - 服务器本地实际路径由未跟踪的 `SDSpipeline/config/paths.env` 解析
 
 ## 3. Active Tracks
 
@@ -24,6 +24,11 @@
 | --- | --- | --- |
 | Demography | NCN 的 phlash / SMC++ / Relate benchmark 文件和关键图已集中登记 | [2026-04-23_ncn_recent_ne_benchmark.md](logs/demography/2026-04-23_ncn_recent_ne_benchmark.md) |
 | Genome-wide SDS | 三条 gamma 轨道的 compare 已完成；当前只有 `SDS-MODEL-001` 保留为 mainline，`SDS-MODEL-002` 与 `SDS-MODEL-003` 都因 diffuse tail 被否决 | [2026-05-03_ncn_gamma_track_compare_review.md](logs/sds/2026-05-03_ncn_gamma_track_compare_review.md) |
+| Workflow rebuild | 已完成从第一性原理重建 SDS workflow 的 blueprint，并逐项对照现有 pipeline 该保留和该重写的环节 | [2026-06-05_first_principles_rebuild_workflow_compare.md](logs/sds/2026-06-05_first_principles_rebuild_workflow_compare.md) |
+| Project structure | 已把工作区正式拆成 `SDSlog/`、`SDSpipeline/`、`SDSworkspace/` 三层，并在 `SDSpipeline` 里建立 canonical script snapshot、path contract 和 provenance template | [2026-06-05_project_structure_decoupling.md](logs/sds/2026-06-05_project_structure_decoupling.md) |
+| Cross-server portability | 已把“大文件路径随服务器变化”的约束正式写成 contract：tracked repo 只保留通用脚本，服务器本地路径只放 `config/paths.env`，一次性桥接脚本只放 `SDSworkspace/oneoff/` | [2026-06-05_cross_server_portability_contract.md](logs/sds/2026-06-05_cross_server_portability_contract.md) |
+| External root adoption | 当前服务器已把 `ms`、`relate`、`smcpp` image/rootfs/runtime 等外部依赖统一挂到 `SDSworkspace/external/` 下，先以 symlink bridge 方式形成 canonical external root | [2026-06-06_external_root_bridge_adoption.md](logs/sds/2026-06-06_external_root_bridge_adoption.md) |
+| Input root adoption | 当前服务器已把 cohort VCF 和常用 freeze sample list 入口统一挂到 `SDSworkspace/input/` 下，先以 symlink bridge 方式形成 canonical input root | [2026-06-06_input_root_bridge_adoption.md](logs/sds/2026-06-06_input_root_bridge_adoption.md) |
 | Single-SNP sensitivity | `chr4:99317841:T:C` 的 gamma sensitivity 已登记，`q97.5` 已补完 | [2026-04-16_chr4_99317841_gamma_sensitivity.md](logs/sds/2026-04-16_chr4_99317841_gamma_sensitivity.md) |
 | Ne0 panel | q2.5/q25/q50 context + scaled `Ne(0)` panel 已准备好；`100k` only 的 chunked gamma submitter 和 local smoke 已验证 | [2026-05-02_ncn_region_ne0_chunked_gamma_acceleration.md](logs/sds/2026-05-02_ncn_region_ne0_chunked_gamma_acceleration.md) |
 | iHS / EHH | 方向已定，结果文件和图还没有系统回填到 `SDSlog` | [logs/ihs_ehh/README.md](logs/ihs_ehh/README.md) |
@@ -56,6 +61,11 @@
 - **gamma provenance 是当前必须解决的 blocking 问题**：olddefault shape (0.026-0.25) 与 Gravel_CHB@100k shape (0.63-0.71) 相差 3-27 倍，但 olddefault 来源不明且不可复现。在解决 provenance 之前，暂停依赖 olddefault 的新 compute run。
 - **chr6 MHC 区域在所有 baseline 中都没有正选择信号**，与 MHC 是已知人类正选择最强区域的预期矛盾。说明 pipeline 存在"假阳性敏感、假阴性不敏感"的结构性问题。需要用 iHS/EHH 做正交验证。
 - **SCN hybrid-policy rerun 后 recovered-only 窗口的 norm_SDS inflation 是 normalization 层 artifact**，不是真实生物学信号。四个最极端峰（chr1:125M, chr9:61.6M, chr16:46.4M + peak143）全部不在蛋白编码基因上。
+- **2026-06-05 已输出 first-principles rebuild blueprint**：当前不再建议继续直接追加 compute run，而是按 [2026-06-05_first_principles_rebuild_workflow_compare.md](logs/sds/2026-06-05_first_principles_rebuild_workflow_compare.md) 先补 `cohort_qc`、analysis mask、shared site universe 与 gamma acceptance。
+- **2026-06-05 已完成项目结构解耦**：`SDSlog/` 保留为汇报与写作 repo，新增 `SDSpipeline/` 作为可复用脚本 repo，新增 `SDSworkspace/` 作为非 git 的 input/results/runroot/provenance 空间。详见 [2026-06-05_project_structure_decoupling.md](logs/sds/2026-06-05_project_structure_decoupling.md)。
+- **2026-06-05 已完成跨服务器路径 contract**：tracked pipeline 默认通过 `common_env.sh` + 本地 `config/paths.env` 解析路径；不同服务器的大文件落点、外部工具路径和一次性桥接脚本都不再写回 git tracked 代码。详见 [2026-06-05_cross_server_portability_contract.md](logs/sds/2026-06-05_cross_server_portability_contract.md)。
+- **2026-06-06 已完成当前服务器 external root adoption**：本机 `ms`、`relate`、`smcpp` image/rootfs、matplotlib config、singularity config 和 system runtime 已统一通过 `SDSworkspace/external/` 暴露为 canonical path，`paths.env` 也已切换到这层入口。详见 [2026-06-06_external_root_bridge_adoption.md](logs/sds/2026-06-06_external_root_bridge_adoption.md)。
+- **2026-06-06 已完成当前服务器 input root adoption**：本机 cohort VCF 与常用 freeze sample list 已统一通过 `SDSworkspace/input/` 暴露为 canonical path，`SDS_VCF_ROOT` 也已切换回 `${SDS_INPUT_ROOT}/raw/vcf`。详见 [2026-06-06_input_root_bridge_adoption.md](logs/sds/2026-06-06_input_root_bridge_adoption.md)。
 
 ## 5a. Current SDS Model Policy
 
@@ -74,6 +84,8 @@
 ### Blocking (must resolve before paper-facing conclusions)
 
 - **Gamma provenance**: 追溯 olddefault `g_file.txt` 的确切来源（检查 SDS 原作者的 R 脚本、supplementary、邮件记录）；做 Ne(0) 敏感性扫描确认是 Ne(0) 差异还是 shape 差异；评估 constant Ne baseline。详见 [2026-06-03_pipeline_reflection_bfile_snp_gamma_demography.md](logs/sds/2026-06-03_pipeline_reflection_bfile_snp_gamma_demography.md)。
+- **Workflow rebuild order**: 不再把“追加 compute”当作默认下一步；先按 [2026-06-05_first_principles_rebuild_workflow_compare.md](logs/sds/2026-06-05_first_principles_rebuild_workflow_compare.md) 固化 clean-root、freeze、mask、site universe、gamma acceptance 的先后顺序。
+- **Repo/workspace adoption**: 新的 reusable 代码优先写到 `SDSpipeline/`；新的 run 优先写到 `SDSworkspace/`，并强制落 provenance manifest。
 - **b_file centromere fix**: 修正 b_file 生成逻辑，显式排除 GRCh38 着丝粒 gap 和 pericentromeric heterochromatin。
 - **SNP input contract expansion**: 增加 pericentromeric/subtelomeric mask 和 DAF 下限。
 - **chr1 peak masking**: 将 chr1:125.1M 和 143.2M 从 paper-facing candidate list 中移除。
