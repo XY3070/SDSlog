@@ -29,6 +29,8 @@
 | Cross-server portability | 已把“大文件路径随服务器变化”的约束正式写成 contract：tracked repo 只保留通用脚本，服务器本地路径只放 `config/paths.env`，一次性桥接脚本只放 `SDSworkspace/oneoff/` | [2026-06-05_cross_server_portability_contract.md](logs/sds/2026-06-05_cross_server_portability_contract.md) |
 | External root adoption | 当前服务器已把 `ms`、`relate`、`smcpp` image/rootfs/runtime 等外部依赖统一挂到 `SDSworkspace/external/` 下，先以 symlink bridge 方式形成 canonical external root | [2026-06-06_external_root_bridge_adoption.md](logs/sds/2026-06-06_external_root_bridge_adoption.md) |
 | Input root adoption | 当前服务器已把 cohort VCF 和常用 freeze sample list 入口统一挂到 `SDSworkspace/input/` 下，先以 symlink bridge 方式形成 canonical input root | [2026-06-06_input_root_bridge_adoption.md](logs/sds/2026-06-06_input_root_bridge_adoption.md) |
+| Processed legacy cleanup | 已把 `sds/data/processed` 中的 scheduler、compare、audit、experiment-input 和零引用长名 output 收口到 `legacy_*` grouped roots，并只删除空壳对象 | [2026-06-06_processed_legacy_cleanup.md](logs/sds/2026-06-06_processed_legacy_cleanup.md) |
+| Variant / singleton QC | 已在 `SDSpipeline` 中补入 input QC contract、chr-level mask builder、controlled post-filter 和 window summarizer；NCN chr1 target test 证明 `peak125/peak143` 可由 mask 或 singleton-density QC 控制，variant-only 与 observability-only 不足 | [2026-06-06_chr1_qc_controlled_sds_test.md](logs/sds/2026-06-06_chr1_qc_controlled_sds_test.md) |
 | Single-SNP sensitivity | `chr4:99317841:T:C` 的 gamma sensitivity 已登记，`q97.5` 已补完 | [2026-04-16_chr4_99317841_gamma_sensitivity.md](logs/sds/2026-04-16_chr4_99317841_gamma_sensitivity.md) |
 | Ne0 panel | q2.5/q25/q50 context + scaled `Ne(0)` panel 已准备好；`100k` only 的 chunked gamma submitter 和 local smoke 已验证 | [2026-05-02_ncn_region_ne0_chunked_gamma_acceleration.md](logs/sds/2026-05-02_ncn_region_ne0_chunked_gamma_acceleration.md) |
 | iHS / EHH | 方向已定，结果文件和图还没有系统回填到 `SDSlog` | [logs/ihs_ehh/README.md](logs/ihs_ehh/README.md) |
@@ -66,6 +68,7 @@
 - **2026-06-05 已完成跨服务器路径 contract**：tracked pipeline 默认通过 `common_env.sh` + 本地 `config/paths.env` 解析路径；不同服务器的大文件落点、外部工具路径和一次性桥接脚本都不再写回 git tracked 代码。详见 [2026-06-05_cross_server_portability_contract.md](logs/sds/2026-06-05_cross_server_portability_contract.md)。
 - **2026-06-06 已完成当前服务器 external root adoption**：本机 `ms`、`relate`、`smcpp` image/rootfs、matplotlib config、singularity config 和 system runtime 已统一通过 `SDSworkspace/external/` 暴露为 canonical path，`paths.env` 也已切换到这层入口。详见 [2026-06-06_external_root_bridge_adoption.md](logs/sds/2026-06-06_external_root_bridge_adoption.md)。
 - **2026-06-06 已完成当前服务器 input root adoption**：本机 cohort VCF 与常用 freeze sample list 已统一通过 `SDSworkspace/input/` 暴露为 canonical path，`SDS_VCF_ROOT` 也已切换回 `${SDS_INPUT_ROOT}/raw/vcf`。详见 [2026-06-06_input_root_bridge_adoption.md](logs/sds/2026-06-06_input_root_bridge_adoption.md)。
+- **2026-06-06 chr1 controlled QC test 已证明问题可控**：在同一 NCN chr1 baseline input 下，`mask_only` 和 `singleton_density_only` 都能把 `peak125/peak143` target windows 的 SDS 输出降为 0，同时基本保留 `control35`；`variant_only`、`excess_sample_only`、`observability_callrate_only` 不能单独解决 peak。结论：chr1 125/143 Mb 主要是 analysis-mask / singleton-density 层面的 artifact，详见 [2026-06-06_chr1_qc_controlled_sds_test.md](logs/sds/2026-06-06_chr1_qc_controlled_sds_test.md)。
 
 ## 5a. Current SDS Model Policy
 
@@ -88,6 +91,7 @@
 - **Repo/workspace adoption**: 新的 reusable 代码优先写到 `SDSpipeline/`；新的 run 优先写到 `SDSworkspace/`，并强制落 provenance manifest。
 - **b_file centromere fix**: 修正 b_file 生成逻辑，显式排除 GRCh38 着丝粒 gap 和 pericentromeric heterochromatin。
 - **SNP input contract expansion**: 增加 pericentromeric/subtelomeric mask 和 DAF 下限。
+- **QC integration into production entrypoint**: 当前 chr1 测试已通过 `SDSpipeline` 的 controlled post-filter 完成，但还需要把 mask、variant QC、singleton-density、excess-sample 和 observability contract 集成进 production input workflow，并补全 genome-wide low-mappability/LCR/segmental-duplication masks。
 - **chr1 peak masking**: 将 chr1:125.1M 和 143.2M 从 paper-facing candidate list 中移除。
 - **chr6 MHC 验证**: 用 iHS/EHH 对 chr6 MHC 做正交验证，确认 SDS pipeline 对该区域是否有 power。
 
