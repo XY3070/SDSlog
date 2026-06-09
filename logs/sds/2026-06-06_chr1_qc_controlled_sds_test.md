@@ -174,3 +174,54 @@ required before broad conclusions.
 `filter_t_to_feather.py` now skips empty arm feather output, which allowed
 masked q-arm target windows to be represented as absent rather than submitted
 to compute as empty chunks.
+
+## Full chr1 Standard Normalization Compare
+
+The final requested comparison was completed on full chr1 outputs using the
+standard postprocess workflow with `maf_threshold = 0.01` and
+`maf_bin_width = 0.01`.
+
+Artifacts:
+
+- Baseline summary:
+  `/data/home/grp-wangyf/xuyuan/SDSworkspace/runs/chr1_qc_control_20260606/postprocess_full_bin001/baseline/NCN_chr1_full.postprocess_summary.tsv`
+- Final cumulative summary:
+  `/data/home/grp-wangyf/xuyuan/SDSworkspace/runs/chr1_qc_control_20260606/postprocess_full_bin001/final_cumulative/NCN_chr1_full.postprocess_summary.tsv`
+- Window comparison:
+  `/data/home/grp-wangyf/xuyuan/SDSworkspace/runs/chr1_qc_control_20260606/compare_full_bin001/baseline_vs_final_window_norm_summary.tsv`
+- Mirror Manhattan:
+  `/data/home/grp-wangyf/xuyuan/SDSworkspace/runs/chr1_qc_control_20260606/compare_full_bin001/chr1_baseline_vs_final_cumulative_mirror_bin001.png`
+  `/data/home/grp-wangyf/xuyuan/SDSworkspace/runs/chr1_qc_control_20260606/compare_full_bin001/chr1_baseline_vs_final_cumulative_mirror_bin001.pdf`
+
+Standard postprocess completed successfully for both arms:
+
+| Arm | Total SNVs | Common variants for normalization | Normalization bins | Bonferroni threshold | Manhattan points |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `baseline` | 3248992 | 556805 | 49 | `8.97980442e-08` | 556731 |
+| `final_cumulative` | 3199292 | 554443 | 49 | `9.018059566e-08` | 554381 |
+
+The normalized `-log10(p)` comparison in the three tracked windows is:
+
+| Arm | Window | Point count | Max `-log10(p)` | Mean `-log10(p)` |
+| --- | --- | ---: | ---: | ---: |
+| `baseline` | `control35` | 53 | 1.435354 | 0.266904 |
+| `baseline` | `peak125` | 228 | 111.101961 | 24.683917 |
+| `baseline` | `peak143` | 177 | 92.764377 | 20.399420 |
+| `final_cumulative` | `control35` | 53 | 1.608084 | 0.335534 |
+| `final_cumulative` | `peak125` | 0 | NA | NA |
+| `final_cumulative` | `peak143` | 0 | NA | NA |
+
+Baseline still contains two highly significant normalized regions:
+
+- `chr1:125107817-125177718`, top SNP `chr1:125164241:A:C`,
+  `TopP = 7.907498759e-112`
+- `chr1:143205259-143404695`, top SNP `chr1:143271064:G:A`,
+  `TopP = 1.720372563e-93`
+
+Those two regions are absent from the `final_cumulative` significant-region
+output.
+
+Conclusion under the requested standard normalization is therefore stable:
+relative to `baseline`, `final_cumulative` removes the chr1 `peak125` and
+`peak143` normalized Manhattan artifacts while leaving the `control35` window
+at essentially the same low background level.
