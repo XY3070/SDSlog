@@ -70,6 +70,36 @@
 - **2026-06-06 已完成当前服务器 input root adoption**：本机 cohort VCF 与常用 freeze sample list 已统一通过 `SDSworkspace/input/` 暴露为 canonical path，`SDS_VCF_ROOT` 也已切换回 `${SDS_INPUT_ROOT}/raw/vcf`。详见 [2026-06-06_input_root_bridge_adoption.md](logs/sds/2026-06-06_input_root_bridge_adoption.md)。
 - **2026-06-06 chr1 controlled QC test 已证明问题可控**：在同一 NCN chr1 baseline input 下，`mask_only` 和 `singleton_density_only` 都能把 `peak125/peak143` target windows 的 SDS 输出降为 0，同时基本保留 `control35`；`variant_only`、`excess_sample_only`、`observability_callrate_only` 不能单独解决 peak。结论：chr1 125/143 Mb 主要是 analysis-mask / singleton-density 层面的 artifact，详见 [2026-06-06_chr1_qc_controlled_sds_test.md](logs/sds/2026-06-06_chr1_qc_controlled_sds_test.md)。
 
+## 5b. Project-Wide QC Contract
+
+The following rules are now the project-level default for any Chinese-cohort SDS QC work, including `raw/9k/sample_qc/` and downstream freeze generation:
+
+1. Sample QC is order-sensitive. Metadata harmonization and sample intersection come first, then missingness and heterozygosity, then relatedness, then post-relatedness PCA, then singleton/callable-region checks, then the final freeze.
+2. Relatedness is capped at second degree or closer. The working cutoff is `KING 0.0884`; looser thresholds need explicit justification.
+3. Heterozygosity is lower-tail only by default. Use `mean - 5 SD` for exclusion; do not drop high-heterozygosity samples unless there is an independent contamination or library-failure signal.
+4. PCA outliers are judged on the post-KING sample set. PCA on the pre-KING set is diagnostic only, not the final inclusion decision.
+5. Singleton metrics are primarily a QC diagnostic and callable-region control. They should not be used as a blunt global filter before the sample/relatedness screen is finished.
+6. Variant/SNP QC for SDS must exclude low-confidence sequence contexts, including centromeres, pericentromeric and subtelomeric masks, low-complexity sequence, and segmental duplications.
+7. SDS scans should use a common-variant universe that is stable enough for selection inference. Sample-QC statistics can use a stricter common-SNP subset; selection scans should only run on the final callable/common set.
+8. Any new QC threshold must be recorded in `SDSlog/SDS_Chinese_Cohort.md` and reflected in the corresponding `sample_qc` report before it is treated as a project standard.
+
+## 5c. Recommended QC Flow for `raw/9k/sample_qc`
+
+This is the preferred flow for the current `raw/9k/sample_qc` directory. It matches the current data products, but it makes the dependency order explicit so the final freeze is built from the post-relatedness sample set.
+
+| Step | Purpose | Recommended rule |
+| --- | --- | --- |
+| 0 | Sample/metadata harmonization | Intersect VCF samples with metadata, deduplicate sample IDs, and write missing-sample report. |
+| 1 | Sample missingness | Exclude samples with `F_MISS >= 0.05`. |
+| 2 | Heterozygosity | Compute on LD-pruned common SNPs; exclude only samples below `mean - 5 SD`. |
+| 3 | Relatedness | Run KING on the same pruned common SNP set; keep only unrelated samples under the `0.0884` cutoff. |
+| 4 | Post-KING variant reduction | Re-run LD prune on the retained samples, then regenerate PCA on that post-KING subset. |
+| 5 | PCA review | Flag PCA outliers on the post-KING set; review labels against cohort metadata and ancestry before final removal. |
+| 6 | Singleton QC | Count singleton burden and inspect callable-region artifacts only after sample filters are fixed. Treat singleton outliers as diagnostic unless they are independently supported by library/QC evidence. |
+| 7 | Final freeze | Write `sample_qc_metrics.tsv`, `cohort_freeze.tsv`, `controls_freeze.txt`, and the summary report from the post-QC sample set. |
+
+The main implementation note for `raw/9k/sample_qc` is that KING should remain on the LD-pruned common SNP panel, but the definitive PCA and freeze must be built from the post-KING sample set. That is the cleanest way to avoid letting relatedness distort ancestry filtering.
+
 ## 5a. Current SDS Model Policy
 
 | Role | Demographic model | Gamma shape source | Present-day `Ne(0)` | Status |

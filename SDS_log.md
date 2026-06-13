@@ -19,6 +19,8 @@
 
 | 2026-06-06 | 用新的 `SDSpipeline` 在隔离 run root 中完成 NCN chr1 controlled QC SDS test：同一 baseline input 下逐一测试 mask、variant-level QC、singleton-density QC、excess-singleton sample、callrate observability 和 cumulative arm。结果显示 `mask_only` 与 `singleton_density_only` 都能把 `peak125/peak143` target windows 的 SDS 输出降为 0，`final_cumulative` 同样清除两个 peak；`variant_only`、`excess_sample_only`、`observability_callrate_only` 不能单独解决。 | [2026-06-06_chr1_qc_controlled_sds_test.md](logs/sds/2026-06-06_chr1_qc_controlled_sds_test.md) |
 
+| 2026-06-13 | 完成 FastSMC selection scan 与论文对齐。遗传图谱统一到 `SDSworkspace/input/reference/maps/`（PLINK 格式），从 Illumina HumanOmniExpressExome + Asian Screening Array 提取 1.22M microarray 位点（GRCh37→GRCh38 nearest-match，无 chain file），22 条染色体并行跑 FastSMC（MAF>0.01 + microarray 两种 variant set × 0.05cM + 0.5cM 两种窗口，共 4 组配置）。发现核心问题：1,255 样本下 0.05cM 窗口非零率仅 4.5%（论文用 487,409 样本），导致 Gamma shape<1 和极端 p-value。microarray+0.5cM 配置下 Gamma shape=0.45，177 个显著窗口（p<5e-8），top 信号在 chr1:120M、chr10:48-50M（ABCC2）、chr15:33M（MAP1A）、chr8:12M。同时建立了 zero-recombination mask（26 个≥50kb 区域，77.5Mb）和 log-space p-value 计算（解决 Gamma SF 下溢）。 | [2026-06-13_fastsmc_paper_aligned_pipeline.md](logs/sds/2026-06-13_fastsmc_paper_aligned_pipeline.md) |
+
 ## Notes To Keep
 
 - 当前优先保证：每个关键测试或生产结果都有 detailed log，每张关键图都有 source path，每个关键结果文件都有 absolute path。
