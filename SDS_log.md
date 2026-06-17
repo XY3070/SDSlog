@@ -21,6 +21,10 @@
 
 | 2026-06-13 | 完成 FastSMC selection scan 与论文对齐。遗传图谱统一到 `SDSworkspace/input/reference/maps/`（PLINK 格式），从 Illumina HumanOmniExpressExome + Asian Screening Array 提取 1.22M microarray 位点（GRCh37→GRCh38 nearest-match，无 chain file），22 条染色体并行跑 FastSMC（MAF>0.01 + microarray 两种 variant set × 0.05cM + 0.5cM 两种窗口，共 4 组配置）。发现核心问题：1,255 样本下 0.05cM 窗口非零率仅 4.5%（论文用 487,409 样本），导致 Gamma shape<1 和极端 p-value。microarray+0.5cM 配置下 Gamma shape=0.45，177 个显著窗口（p<5e-8），top 信号在 chr1:120M、chr10:48-50M（ABCC2）、chr15:33M（MAP1A）、chr8:12M。同时建立了 zero-recombination mask（26 个≥50kb 区域，77.5Mb）和 log-space p-value 计算（解决 Gamma SF 下溢）。 | [2026-06-13_fastsmc_paper_aligned_pipeline.md](logs/sds/2026-06-13_fastsmc_paper_aligned_pipeline.md) |
 
+| 2026-06-14 | 将 2026-05-25 的 Gravel_CHB tip-branch `Ne(0)` panel 从 `tmp` 归档到 `SDSworkspace`，并生成一张可直接引用的对比图；结论仍是 `Ne(0)` 主要改 scale，不明显改 shape。 | [2026-06-14_gravel_chb_tip_branch_ne_panel_promotion.md](logs/sds/2026-06-14_gravel_chb_tip_branch_ne_panel_promotion.md) |
+| 2026-06-14 | 将 2026-05-03 的 same-input gamma compare 归档到 `SDSworkspace`，并生成三联 `CMplot` 证据图；结论是 gamma file choice 在固定输入下会显著改变 Manhattan 形状。 | [2026-06-14_ncn_gamma_track_compare_promotion.md](logs/sds/2026-06-14_ncn_gamma_track_compare_promotion.md) |
+| 2026-06-14 | 补齐 raw/9k cohort_qc 的 stepwise counts 和诊断图归档；`sample_qc`、`snp_qc`、`singleton_qc` 的详细记录统一收口到 [cohort_qc log](logs/cohort_qc/2026-06-14_raw9k_qc_counts_and_plots.md) 和 [plot index](plots/plot_index.md)。 | [2026-06-14_raw9k_qc_counts_and_plots.md](logs/cohort_qc/2026-06-14_raw9k_qc_counts_and_plots.md) |
+
 ## Notes To Keep
 
 - 当前优先保证：每个关键测试或生产结果都有 detailed log，每张关键图都有 source path，每个关键结果文件都有 absolute path。

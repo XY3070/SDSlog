@@ -72,16 +72,20 @@
 
 ## 5b. Project-Wide QC Contract
 
-The following rules are now the project-level default for any Chinese-cohort SDS QC work, including `raw/9k/sample_qc/` and downstream freeze generation:
+Canonical cohort-QC details now live in:
 
-1. Sample QC is order-sensitive. Metadata harmonization and sample intersection come first, then missingness and heterozygosity, then relatedness, then post-relatedness PCA, then singleton/callable-region checks, then the final freeze.
-2. Relatedness is capped at second degree or closer. The working cutoff is `KING 0.0884`; looser thresholds need explicit justification.
-3. Heterozygosity is lower-tail only by default. Use `mean - 5 SD` for exclusion; do not drop high-heterozygosity samples unless there is an independent contamination or library-failure signal.
-4. PCA outliers are judged on the post-KING sample set. PCA on the pre-KING set is diagnostic only, not the final inclusion decision.
-5. Singleton metrics are primarily a QC diagnostic and callable-region control. They should not be used as a blunt global filter before the sample/relatedness screen is finished.
-6. Variant/SNP QC for SDS must exclude low-confidence sequence contexts, including centromeres, pericentromeric and subtelomeric masks, low-complexity sequence, and segmental duplications.
-7. SDS scans should use a common-variant universe that is stable enough for selection inference. Sample-QC statistics can use a stricter common-SNP subset; selection scans should only run on the final callable/common set.
-8. Any new QC threshold must be recorded in `SDSlog/SDS_Chinese_Cohort.md` and reflected in the corresponding `sample_qc` report before it is treated as a project standard.
+- [logs/cohort_qc/README.md](logs/cohort_qc/README.md)
+- [raw/9k/README.md](/data/home/grp-wangyf/xuyuan/raw/9k/README.md)
+
+The project-level default is:
+
+1. Sample QC is order-sensitive: metadata harmonization, missingness, `MAF >= 0.05` gating for het / KING, heterozygosity, relatedness, post-KING PCA, then singleton diagnostics.
+2. Relatedness is capped at second degree or closer. The working cutoff remains `KING 0.0884`.
+3. Heterozygosity is lower-tail only by default, using `mean - 5 SD`.
+4. PCA outliers are judged on the post-KING sample set.
+5. Singleton metrics are diagnostic and callable-region control, with per-site missingness gated by both absolute and relative thresholds.
+6. SNP QC must remove low-confidence sequence contexts and keep the `chrX/chrY` PAR handling explicit.
+7. Any change to these thresholds must be reflected in the cohort_qc README and the relevant run report before it becomes a project standard.
 
 ## 5c. Recommended QC Flow for `raw/9k/sample_qc`
 
