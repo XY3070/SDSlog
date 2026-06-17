@@ -25,6 +25,8 @@
 | 2026-06-14 | 将 2026-05-03 的 same-input gamma compare 归档到 `SDSworkspace`，并生成三联 `CMplot` 证据图；结论是 gamma file choice 在固定输入下会显著改变 Manhattan 形状。 | [2026-06-14_ncn_gamma_track_compare_promotion.md](logs/sds/2026-06-14_ncn_gamma_track_compare_promotion.md) |
 | 2026-06-14 | 补齐 raw/9k cohort_qc 的 stepwise counts 和诊断图归档；`sample_qc`、`snp_qc`、`singleton_qc` 的详细记录统一收口到 [cohort_qc log](logs/cohort_qc/2026-06-14_raw9k_qc_counts_and_plots.md) 和 [plot index](plots/plot_index.md)。 | [2026-06-14_raw9k_qc_counts_and_plots.md](logs/cohort_qc/2026-06-14_raw9k_qc_counts_and_plots.md) |
 
+| 2026-06-16 | 用 Ensembl 10-primate EPO ancestor FASTA 对 10 条已 QC 染色体（chr4/5/7/14/17/18/19/20/21/22）的 singleton 位点做 AA/DA 注释。共 16.4M singleton，94.6%（15.5M）成功注释；93.6% REF=AA，1.0% ALT=AA；chr19/22 注释率最低（86-88%）。脚本通用化，后续新染色体 QC 完后可直接复用。 | [2026-06-16_singleton_ancestor_annotation_10chr.md](logs/cohort_qc/2026-06-16_singleton_ancestor_annotation_10chr.md) |
+
 ## Notes To Keep
 
 - 当前优先保证：每个关键测试或生产结果都有 detailed log，每张关键图都有 source path，每个关键结果文件都有 absolute path。
