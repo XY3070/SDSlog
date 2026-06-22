@@ -72,7 +72,8 @@ Top 信号: chr4:8,184,879 (rSDS=2.13, artifact), chr4:8,254,567 (1.24), chr4:10
 以下约定已硬编码到 `SDSpipeline/`:
 
 1. **t_file AF 过滤**: `generate_t_file.sh:29` — `AF>=0.05 && AF<=0.95`
-2. **Norm 分层**: `postprocess_sds_results.py` — MAF<0.1 bin=0.05, MAF≥0.1 bin=0.1 (硬编码，无开关)
-3. **matplotlib**: 已从 `postprocess_sds_results.py` 删除
-4. **CMplot**: `report_cmplot_manhattan.R` — PNG only (无 PDF), p-threshold 默认 1 (不过滤)
-5. **Gamma**: `g_file.Gravel_EAS.txt` 为所有 pop 默认 gamma (`common_env.sh:find_default_g_file` 最高优先级)
+2. **t_file HWE 过滤**: `generate_t_file.sh:28-29` — `HWE>=1e-6`（排除 paralog/CNV 杂合子过剩 artifact；t_file 检查发现 246/387325 SNPs 应被过滤，其中 211 个 obs_het≈0.97-0.99）
+3. **Norm 分层**: `postprocess_sds_results.py` — MAF<0.1 bin=0.05, MAF≥0.1 bin=0.1 (硬编码，无开关)
+4. **matplotlib**: 已从 `postprocess_sds_results.py` 删除
+5. **CMplot**: `report_cmplot_manhattan.R` — PNG only (无 PDF), p-threshold 默认 1 (不过滤)
+6. **Gamma**: `g_file.Gravel_EAS.txt` 为所有 pop 默认 gamma (`common_env.sh:find_default_g_file` 最高优先级)

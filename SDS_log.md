@@ -27,7 +27,7 @@
 
 | 2026-06-16 | 用 Ensembl 10-primate EPO ancestor FASTA 对 10 条已 QC 染色体（chr4/5/7/14/17/18/19/20/21/22）的 singleton 位点做 AA/DA 注释。共 16.4M singleton，94.6%（15.5M）成功注释；93.6% REF=AA，1.0% ALT=AA；chr19/22 注释率最低（86-88%）。脚本通用化，后续新染色体 QC 完后可直接复用。 | [2026-06-16_singleton_ancestor_annotation_10chr.md](logs/cohort_qc/2026-06-16_singleton_ancestor_annotation_10chr.md) |
 
-| 2026-06-17 | 用 `snp_singleton_qc_chr4_v1` 数据完成 chr4 SDS 计算（4393 样本，379k SNPs，132 mask 区间）。确认 `gamma_shapes.Gravel_EAS.n100` triplet 1 col2 为 shape 参数（CV=0.73 合理），固定为唯一权威 gamma（`g_file.Gravel_EAS.txt`）。发现 chr4:8184879 的 HWE p=3.4e-1286 但通过了 QC HWE 过滤（疑似 resume 模式 bug）。Pipeline 约定冻结到 `SDSpipeline`：t_file AF 0.05-0.95、split-bin norm（MAF<0.1→0.05, ≥0.1→0.1 硬编码）、CMplot PNG only、p-value 不过滤、matplotlib 删除。 | [2026-06-17_chr4_singleton_qc_v1_eas_gamma_frozen_pipeline.md](logs/sds/2026-06-17_chr4_singleton_qc_v1_eas_gamma_frozen_pipeline.md) |
+| 2026-06-17 | 用 `snp_singleton_qc_chr4_v1` 数据完成 chr4 SDS 计算（4393 样本，379k SNPs，132 mask 区间）。确认 `gamma_shapes.Gravel_EAS.n100` triplet 1 col2 为 shape 参数（CV=0.73 合理），固定为唯一权威 gamma（`g_file.Gravel_EAS.txt`）。发现 chr4:8184879 的 HWE p=3.4e-1286 但通过了 QC HWE 过滤（疑似 resume 模式 bug）；t_file 全量 HWE 检查发现 246 SNPs 应被过滤（211 个 obs_het≈0.97-0.99），已在 `generate_t_file.sh` 加 `HWE>=1e-6` 过滤。Pipeline 约定冻结到 `SDSpipeline`：t_file AF 0.05-0.95 + HWE、split-bin norm（MAF<0.1→0.05, ≥0.1→0.1 硬编码）、CMplot PNG only、p-value 不过滤、matplotlib 删除。 | [2026-06-17_chr4_singleton_qc_v1_eas_gamma_frozen_pipeline.md](logs/sds/2026-06-17_chr4_singleton_qc_v1_eas_gamma_frozen_pipeline.md) |
 
 ## Notes To Keep
 
