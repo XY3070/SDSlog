@@ -1,128 +1,193 @@
-# 2026-06-26 Population structure analysis: ADMIXTURE + badMIXTURE + PCA-UMAP
+# 2026-06-26 Population structure: ADMIXTURE → badMIXTURE → PCA-UMAP
 
-## Summary
+## Environment & Tools
 
-对 9k Chinese cohort (4,393 samples) 完成三层次 population structure 分析：(1) ADMIXTURE unsupervised K=2..10 离散聚类；(2) badMIXTURE 残差检验——逐位点对比模型预测与真实基因型，用量化颜色随机性评估拟合质量；(3) PCA-UMAP 连续梯度——分别用 common (MAF>1%) 和 rare (MAF 0.1%–1%) variant sets 做 50-PC 降维后的 UMAP 可视化，检验离散假设之外的连续群体结构。
-
-核心发现：ADMIXTURE 离散模型在 per-SNP 水平拟合差（badMIXTURE Row ACF ~0.86），个体间存在模型未捕获的系统性关联；PCA-UMAP 证实 common variants 已能分辨地理结构，rare variants 可能提供更精细的分层信号。
-
-## 输入
-
-| 文件 | 来源 | 说明 |
+| Tool | Role | Env / Path |
 |---|---|---|
-| Genotype (ADMIXTURE) | `SDSworkspace/runs/admixture_9k_v1_20260619/input/9k_ldpruned.{pgen,psam,pvar}` | LD-pruned (50/5/0.2), 107,927 SNPs, 4,393 samples |
-| Genotype (PCA-UMAP common) | `raw/9k/snp_singleton_qc/snp_qc_pass.vcf.gz` → `runs/umap_9k/9k_snp_qc_maf01` | MAF>1%, 580,363 → LD-prune → 107,927 SNPs, 4,392 samples |
-| Genotype (PCA-UMAP rare) | 同上 VCF → `runs/umap_9k/9k_snp_qc_rare_maf01` | MAF 0.1%–1%, 508,963 → LD-prune → 376,481 SNPs, 4,382 samples |
-| Sample metadata | `raw/9k/sample_qc/cohort_freeze.tsv` | Region labels：Guangzhou, Shenzhen, HongKong, Shanghai, Jinan, JiNing, Unknown |
+| ADMIXTURE 1.3.0 | Unsupervised clustering K=2..10 | `SDSworkspace/runs/admixture_9k_v1_20260619/unsupervised/` |
+| badMIXTURE (R package) | Residual test: model vs observed per-site | conda `sds` (`/data/home/grp-wangyf/intern/miniforge3/envs/sds`) |
+| PLINK2 v2.0.0-a.6.34LM | MAF filter, LD prune, PCA | `/data/home/grp-wangyf/leiyao/Tools/PLINK2/plink2` |
+| umap-learn (Python) | 50-PC → 2D UMAP embedding | conda `sds` (`python3.14`) |
+| matplotlib | All figures | conda `sds` / uv `.venv` |
 
-## ADMIXTURE: Unsupervised K=2..10
+## Input Provenance
 
-**脚本:** `SDSworkspace/oneoff/run_badmixture_analysis.R` (cluster plots, K evaluation, region composition)  
-**Q 矩阵:** `runs/admixture_9k_v1_20260619/unsupervised/9k.{K}.Q`  
-**P 矩阵:** `runs/admixture_9k_v1_20260619/unsupervised/9k.{K}.P`
+| Layer | Source | Details |
+|---|---|---|
+| ADMIXTURE genotype | `SDSworkspace/runs/admixture_9k_v1_20260619/input/9k_ldpruned.{pgen,psam,pvar}` | LD-pruned (50/5/0.2), 107,927 SNPs, 4,393 samples |
+| PCA-UMAP genotype (common) | `raw/9k/snp_singleton_qc/snp_qc_pass.vcf.gz` | 14.56M variants → MAF>1% → 580k → LD-prune → 108k |
+| PCA-UMAP genotype (rare) | Same VCF | 14.56M variants → MAF 0.1%–1% → 509k → LD-prune → 376k |
+| Sample metadata | `raw/9k/sample_qc/cohort_freeze.tsv` | Regions: Guangzhou, Shenzhen, HongKong, Shanghai, Jinan, JiNing |
+| ADMIXTURE Q/P matrices | `runs/admixture_9k_v1_20260619/unsupervised/9k.{K}.{Q,P}` | K=2..10, `.Q` = admixture proportions, `.P` = ancestral allele freqs (L × K) |
 
-### K 评估（非 CV 指标）
+## Step 1 — ADMIXTURE: Unsupervised K=2..10
 
-使用 Evanno Delta-K、50% subsample stability、normalized entropy、ambiguous proportion (maxQ<0.6) 四个指标评估最优 K。
+**Script:** `SDSworkspace/oneoff/run_badmixture_analysis.R`  
+**Method:** Standard ADMIXTURE unsupervised run for K=2..10 on LD-pruned SNPs. Per-K cluster assignment (dominant component, threshold maxQ≥0.6). K evaluation via Evanno Delta-K, 50% subsample stability, normalized entropy, ambiguous proportion.
 
-### 输出
+### Single-figure ancestry plot (K=2)
 
-| 文件 | 说明 |
+**Script:** `SDSpipeline/scripts/plot_ancestry_one_figure.py`  
+All 4,393 samples on one stacked bar, sorted by region block then component-0 proportion (monotonic gradient). Region labels rotated 45°.
+
+**Output:** `runs/admixture_9k_v1_20260619/figures/ancestry_one_figure_K2.png`
+
+### K evaluation (non-CV)
+
+| Metric | Best K | Behavior |
+|---|---|---|
+| Evanno Delta-K | varies | second-order LL rate-of-change |
+| Stability (50% subsample, 10 reps) | varies | cluster concordance across splits |
+| Normalized entropy | lower = better | cluster separation |
+| Ambiguous (maxQ<0.6) | higher = more uncertain | per-individual assignment confidence |
+
+### ADMIXTURE cluster outputs
+
+| File | Content |
 |---|---|
-| `runs/umap_9k/badmixture/cluster_plots_per_K.pdf` | Per-K 四面板：Q heatmap (50/cluster sampled)、PCA of Q、cluster sizes、mean ancestry per cluster |
-| `runs/umap_9k/badmixture/full_heatmap_K{2..10}.png` | 全样本 Q 矩阵热图（按 cluster + maxQ 排序） |
-| `runs/umap_9k/badmixture/K_evaluation.png` | 六面板 K 评估：LL、Delta-K、Stability、Entropy、Ambiguous%、metrics table |
-| `runs/umap_9k/badmixture/region_cluster_K*.png` | Best-K by-region 聚类组成 barplot |
+| `badmixture/cluster_plots_per_K.pdf` | Per-K 4-panel: Q heatmap (50/cluster), PCA of Q, cluster sizes, mean ancestry per cluster |
+| `badmixture/full_heatmap_K{2..10}.png` | Full-cohort Q matrix heatmap (ordered by cluster→maxQ) |
+| `badmixture/K_evaluation.png` | 6-panel: LL, Delta-K, Stability, Entropy, Ambiguous%, metrics table |
+| `badmixture/region_cluster_K{2,4}.png` | Best-K region×cluster composition barplot |
 
-## badMIXTURE: 残差检验
+All paths relative to `SDSworkspace/runs/umap_9k/`.
 
-**脚本:** `SDSworkspace/oneoff/run_badmixture_residuals.R`  
-**方法:** 对每个 K，sample 50/cluster（与先前分析相同，无重新抽样），提取 2,000 随机 SNP 的基因型 (plink2 --export A)，计算 `G_exp = 2·Q·P^T`（ADMIXTURE 模型期望），残差 `R = G_obs - G_exp`。用 badMIXTURE 蓝-白-红 divergent palette 可视化残差矩阵，以颜色随机性量化拟合质量。
+## Step 2 — badMIXTURE: Residual test
 
-### 残差质量指标
+**Script:** `SDSworkspace/oneoff/run_badmixture_residuals.R`  
+**Method:** For each K=2..8, sample 50 individuals per ADMIXTURE cluster (same sampling as Step 1, no re-sample). Extract 2,000 random SNP genotypes via `plink2 --export A`. Compute ADMIXTURE model expectation:
 
-| K | ResidualVar | MAE | Row ACF | Col ACF | \|R\|>1 | Randomness* |
-|---|------------|------|---------|---------|------|-------------|
-| 2 | 3.036 | 1.634 | 0.861 | 0.008 | 82.1% | 0.870 |
-| 3 | 3.041 | 1.635 | 0.858 | 0.012 | 82.2% | 0.871 |
-| 4 | 3.047 | 1.637 | 0.855 | 0.013 | 82.3% | 0.868 |
-| 5 | 3.047 | 1.637 | 0.858 | 0.010 | 82.3% | 0.867 |
-| 6 | 3.050 | 1.639 | 0.859 | 0.011 | 82.4% | 0.870 |
-| 7 | 3.050 | 1.639 | 0.860 | 0.010 | 82.4% | 0.870 |
-| 8 | 3.049 | 1.638 | 0.859 | 0.010 | 82.4% | 0.869 |
+```
+G_exp[i,j] = 2 · Σ_k Q[i,k] · P[j,k]
+R[i,j] = G_obs[i,j] − G_exp[i,j]
+```
 
-*Randomness = |Row ACF| + |Col ACF|，越低 = 越随机 = 拟合越好。
+Residuals visualized with badMIXTURE diverging palette: blue (−) → white (0) → red (+). Color randomness quantifies fit: random speckle = good fit; structured blocks = model missing signal.
 
-### 解读
+### Per-K residual metrics
 
-- **Row ACF ~0.86（极高）：** 个体间残差高度相关，ADMIXTURE 离散聚类假设无法捕获的系统性个体间关联。这是 badMIXTURE 的核心诊断信号。
-- **Col ACF ~0.01（低）：** SNP 间残差基本独立，无 SNP 特异性偏倚。
-- **Randomness 跨 K 平坦（~0.87）：** 增加聚类数不能改善拟合。模型在低 K 已饱和。
-- **82% 大残差（|R|>1）：** per-SNP 基因型预测偏差普遍较大，部分与低 MAF SNP 的二项方差大有关。
+| K | ResidVar | MAE | Row ACF | Col ACF | \|R\|>1% | Randomness↓ |
+|---|----------|-----|---------|---------|-------|-------------|
+| 2 | 3.036 | 1.634 | 0.861 | 0.008 | 82.1 | 0.870 |
+| 3 | 3.041 | 1.635 | 0.858 | 0.012 | 82.2 | 0.871 |
+| 4 | 3.047 | 1.637 | 0.855 | 0.013 | 82.3 | 0.868 |
+| 5 | 3.047 | 1.637 | 0.858 | 0.010 | 82.3 | 0.867 |
+| 6 | 3.050 | 1.639 | 0.859 | 0.011 | 82.4 | 0.870 |
+| 7 | 3.050 | 1.639 | 0.860 | 0.010 | 82.4 | 0.870 |
+| 8 | 3.049 | 1.638 | 0.859 | 0.010 | 82.4 | 0.869 |
 
-结论：离散混合模型单独不足以描述该 cohort 的群体遗传结构，需要连续梯度方法补充。
+**Randomness = |Row ACF| + |Col ACF|**. Lower = residuals more random = better fit.
 
-### 输出
+### Key signals
 
-| 文件 | 说明 |
+- **Row ACF ~0.86 (critical):** Inter-individual residual correlation. Shows systematic between-individual structure not captured by discrete ADMIXTURE clusters. This is badMIXTURE's primary diagnostic.
+- **Col ACF ~0.01 (clean):** Inter-SNP residual independence. No systematic SNP-level bias.
+- **Randomness flat across K (0.867–0.871):** Adding clusters does not improve fit — model saturated at low K.
+- **82% large residuals (|R|>1):** Per-SNP genotype predictions deviate substantially. Partly explained by binomial variance at low MAF.
+
+**Conclusion:** Discrete mixture model alone insufficient for this cohort. Continuous gradient approach needed.
+
+### badMIXTURE outputs
+
+| File | Content |
 |---|---|
-| `runs/umap_9k/badmixture/badmixture_residuals_K{2..8}.png` | 四面板残差图：主热图 (蓝-白-红)、color scale、cluster bar、mean residual per individual |
-| `runs/umap_9k/badmixture/badmixture_quality_vs_K.png` | 六面板跨 K 对比：ResidualVar、MAE、Randomness、Row ACF、Col ACF、PropLarge |
+| `badmixture/badmixture_residuals_K{2..8}.png` | 4-panel: main heatmap (blue-white-red), color scale, cluster assignment bar, mean residual per individual |
+| `badmixture/badmixture_quality_vs_K.png` | 6-panel cross-K: ResidVar, MAE, Randomness, Row ACF, Col ACF, PropLarge |
 
-## PCA-UMAP: 连续梯度探索
+All paths relative to `SDSworkspace/runs/umap_9k/`.
 
-**脚本:** `SDSworkspace/oneoff/run_umap_9k.sh` (common), `SDSworkspace/oneoff/run_umap_9k_rare.sh` (rare)  
-**Pipeline:** MAF filter → LD prune (50/5/0.2) → top 50 PCs (plink2 --pca) → UMAP (n_neighbors=30, min_dist=0.1, random_state=42)
+## Step 3 — PCA-UMAP: Continuous gradient
 
-### Common variants (MAF>1%)
+**Scripts:** `SDSworkspace/oneoff/run_umap_9k.sh` (common), `SDSworkspace/oneoff/run_umap_9k_rare.sh` (rare)  
+**Pipeline:** MAF filter → LD prune (50/5/0.2) → top 50 PCs (plink2 --pca) → UMAP (n_neighbors=30, min_dist=0.1, seed=42)  
+**Motivation:** badMIXTURE Row ACF ~0.86 → discrete ADMIXTURE clusters miss gradient structure. PCA-UMAP tests whether continuous low-dimensional manifold captures what discrete model cannot.
 
-| 阶段 | SNP count | Sample count |
+### SNP yield comparison
+
+| Stage | Common (MAF>1%) | Rare (0.1%–1%) |
 |---|---|---|
-| Input VCF | 14.56M | 4,393 |
-| MAF>1% filter | 580,363 | 4,392 |
-| LD prune | 107,927 | 4,392 |
-| PCA (top 50) | 107,927 | 4,392 |
+| VCF input | 14.56M variants | 14.56M variants |
+| MAF filter | 580,363 | 508,963 |
+| LD prune (r²>0.2 removed) | 107,927 (18.6% retained) | 376,481 (74.0% retained) |
+| PCA samples | 4,392 | 4,382 |
 
-### Rare variants (MAF 0.1%–1%)
+Rare variants: LD prune retention 4× higher → rare alleles carry less pairwise LD → more independent SNP axes for PCA.
 
-| 阶段 | SNP count | Sample count |
-|---|---|---|
-| Input VCF | 14.56M | 4,393 |
-| 0.1%<MAF<1% filter | 508,963 | 4,383 |
-| LD prune | 376,481 | 4,382 |
-| PCA (top 50) | 376,481 | 4,382 |
+### UMAP figure matrix (5 views × 2 variant sets = 10 figures)
 
-Rare variants 在 LD prune 后保留 74% (376k/509k)，远高于 common variants 的 19% (108k/580k)——rare variants 间 LD 更低，保留了更多独立信号。
-
-### UMAP 输出（每 variant set 5 图）
-
-| Common 输出 | Rare 输出 | 着色 | 目的 |
+| View | Common output | Rare output | What it tests |
 |---|---|---|---|
-| `*_umap_region.png` | `*_rare_umap_region.png` | Region (GZ/SZ/HK/SH/JN/JiN/Unknown) | 地理标签在连续流形上的分布 |
-| `*_umap_admixture_k2.png` | `*_rare_umap_admixture_k2.png` | ADMIXTURE K=2 dominant cluster | 离散聚类与连续梯度的一致/冲突 |
-| `*_umap_pc1.png` | `*_rare_umap_pc1.png` | PC1 (inferno colormap) | 主成分梯度结构的连续性 |
-| `*_umap_pc12_bicolor.png` | `*_rare_umap_pc12_bicolor.png` | R=PC1, G=PC2 bicolor | 双 PC 结构同时可视化（纯色=PC结构清晰，泥色=噪声） |
-| `*_umap.png` | `*_rare_umap.png` | 灰度（仅点分布） | 整体拓扑 |
+| Region | `*_umap_region.png` | `*_rare_umap_region.png` | Geographic labels on continuous manifold |
+| K2 cluster | `*_umap_admixture_k2.png` | `*_rare_umap_admixture_k2.png` | Discrete cluster vs continuous topology |
+| PC1 gradient | `*_umap_pc1.png` | `*_rare_umap_pc1.png` | PC1 structure continuity (inferno colormap) |
+| PC1+PC2 bicolor | `*_umap_pc12_bicolor.png` | `*_rare_umap_pc12_bicolor.png` | R=PC1, G=PC2 — pure hues = PC-structured, muddy = noise |
+| Plain | `*_umap.png` | `*_rare_umap.png` | Overall topology, all samples |
 
-所有输出在 `SDSworkspace/runs/umap_9k/`。
+Prefix: `9k_snp_qc` (common) / `9k_snp_qc_rare` (rare). All in `SDSworkspace/runs/umap_9k/`.
 
-### UMAP 坐标文件
+### Coordinate tables
 
-`9k_snp_qc_umap.tsv` / `9k_snp_qc_rare_umap.tsv`：含 FID、IID、UMAP1、UMAP2、Region、K2_Cluster、PC1、PC2
+`9k_snp_qc_umap.tsv` / `9k_snp_qc_rare_umap.tsv` — 9 columns: FID, IID, UMAP1, UMAP2, Region, K2_Cluster, PC1, PC2. One row per sample.
 
-## 跨方法结论
+## Cross-method synthesis
 
-1. **ADMIXTURE 离散聚类**在 cohort 层面有区分度（region × cluster 交叉可见结构），但 **badMIXTURE 残差检验** 揭示模型在 per-SNP 水平存在严重 misfit（Row ACF ~0.86），个体间有离散假设未捕获的隐秘连续关联。
-2. **PCA-UMAP 连续方法** 证实 common variants 已能分辨地理结构（region-colored UMAP 可见区域分离），弥补了离散模型的盲区。
-3. Rare variants (376k SNPs post-LD-prune) 提供了 3.5× more SNP markers，可能揭示更精细的 recent demographic events。
-4. badMIXTURE randomness score 跨 K 平坦 → 增加聚类数不改善拟合质量，模型选择不应仅依赖 CV/Delta-K。
+```
+ADMIXTURE K=2..10          badMIXTURE residuals       PCA-UMAP (common/rare)
+─────────────────          ─────────────────────       ──────────────────────
+Discrete clusters           Row ACF ~0.86               Continuous manifold
+Region×cluster structure    Model misfit confirmed      Geographic separation visible
+K selection via Δ-K/stab    Randomness flat across K     Rare: 3.5× more SNP axes
+                      ↘         ↓         ↙
+                       ADMIXTURE discrete assumption
+                       misses inter-individual gradient.
+                       PCA-UMAP continuous approach
+                       captures this hidden structure.
+```
 
-## 相关脚本
+1. **ADMIXTURE** finds interpretable region×cluster composition, but K evaluation metrics alone cannot detect model misfit.
+2. **badMIXTURE** proves misfit exists (Row ACF 0.86) and is not fixable by increasing K (flat randomness score). This is the quantitative evidence that discrete clusters are insufficient.
+3. **PCA-UMAP common** (108k SNPs, MAF>1%) shows geographic structure on continuous manifold — the gradient that ADMIXTURE bins into discrete clusters.
+4. **PCA-UMAP rare** (376k SNPs, MAF 0.1%–1%) provides denser SNP coverage — 74% LD-prune retention vs 19% for common — potentially capturing finer-scale recent demographic events.
 
-| 脚本 | 路径 |
-|---|---|
-| ADMIXTURE cluster + K eval | `SDSworkspace/oneoff/run_badmixture_analysis.R` |
-| badMIXTURE 残差 | `SDSworkspace/oneoff/run_badmixture_residuals.R` |
-| UMAP common variants | `SDSworkspace/oneoff/run_umap_9k.sh` |
-| UMAP rare variants | `SDSworkspace/oneoff/run_umap_9k_rare.sh` |
-| ADMIXTURE single-figure | `SDSpipeline/scripts/plot_ancestry_one_figure.py` |
+## Script inventory
+
+| Script | Purpose | Location |
+|---|---|---|
+| `plot_ancestry_one_figure.py` | Single stacked-bar ancestry plot (K=2), monotonic sort | `SDSpipeline/scripts/` |
+| `run_badmixture_analysis.R` | ADMIXTURE cluster plots, K evaluation, region composition | `SDSworkspace/oneoff/` |
+| `run_badmixture_residuals.R` | badMIXTURE residual analysis (model vs observed per-site) | `SDSworkspace/oneoff/` |
+| `run_umap_9k.sh` | PCA-UMAP pipeline (common variants MAF>1%) | `SDSworkspace/oneoff/` |
+| `run_umap_9k_rare.sh` | PCA-UMAP pipeline (rare variants MAF 0.1%–1%) | `SDSworkspace/oneoff/` |
+
+## Output file index
+
+Figures under `SDSworkspace/runs/`:
+
+```
+admixture_9k_v1_20260619/figures/
+    ancestry_one_figure_K2.png              ← single stacked bar, monotonic component sort
+
+umap_9k/badmixture/
+    cluster_plots_per_K.pdf                 ← ADMIXTURE K=2..10 per-K 4-panel
+    full_heatmap_K{2..10}.png              ← full-cohort Q heatmaps
+    K_evaluation.png                        ← 6-panel K evaluation
+    region_cluster_K{2,4}.png              ← region×cluster composition
+    badmixture_residuals_K{2..8}.png       ← residual heatmaps (blue-white-red)
+    badmixture_quality_vs_K.png             ← cross-K residual metrics
+
+umap_9k/                                    ← common variant UMAP (MAF>1%, 108k SNPs)
+    9k_snp_qc_umap.png                      ← plain
+    9k_snp_qc_umap_region.png               ← colored by region
+    9k_snp_qc_umap_admixture_k2.png         ← colored by ADMIXTURE K=2 cluster
+    9k_snp_qc_umap_pc1.png                  ← colored by PC1 (inferno)
+    9k_snp_qc_umap_pc12_bicolor.png         ← R=PC1, G=PC2 bicolor
+    9k_snp_qc_umap.tsv                      ← coords + metadata
+
+umap_9k/                                    ← rare variant UMAP (MAF 0.1%–1%, 376k SNPs)
+    9k_snp_qc_rare_umap.png                 ← plain
+    9k_snp_qc_rare_umap_region.png          ← colored by region
+    9k_snp_qc_rare_umap_admixture_k2.png    ← colored by ADMIXTURE K=2 cluster
+    9k_snp_qc_rare_umap_pc1.png             ← colored by PC1 (inferno)
+    9k_snp_qc_rare_umap_pc12_bicolor.png    ← R=PC1, G=PC2 bicolor
+    9k_snp_qc_rare_umap.tsv                 ← coords + metadata
+```
