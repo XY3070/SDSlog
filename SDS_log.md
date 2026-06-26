@@ -29,6 +29,8 @@
 
 | 2026-06-17 | 用 `snp_singleton_qc_chr4_v1` 数据完成 chr4 SDS 计算（4393 样本，379k SNPs，132 mask 区间）。确认 `gamma_shapes.Gravel_EAS.n100` triplet 1 col2 为 shape 参数（CV=0.73 合理），固定为唯一权威 gamma（`g_file.Gravel_EAS.txt`）。发现 chr4:8184879 的 HWE p=3.4e-1286 但通过了 QC HWE 过滤（疑似 resume 模式 bug）；t_file 全量 HWE 检查发现 246 SNPs 应被过滤（211 个 obs_het≈0.97-0.99），已在 `generate_t_file.sh` 加 `HWE>=1e-6` 过滤。Pipeline 约定冻结到 `SDSpipeline`：t_file AF 0.05-0.95 + HWE、split-bin norm（MAF<0.1→0.05, ≥0.1→0.1 硬编码）、CMplot PNG only、p-value 不过滤、matplotlib 删除。 | [2026-06-17_chr4_singleton_qc_v1_eas_gamma_frozen_pipeline.md](logs/sds/2026-06-17_chr4_singleton_qc_v1_eas_gamma_frozen_pipeline.md) |
 
+| 2026-06-26 | 完成 5 个群体 microarray 数据的 FastSMC 预处理（CC/GZ/HK/JN/Thai，共 17,989 样本 × 22 chr = 110 文件）。流程：CHN100k imputation VCF → QC（R²≥0.3, MAF≥0.01, HWE≥1e-6, biallelic SNPs, geno≤5%）→ SHAPEIT5 phasing → 排除正向选择区域（57 regions, 86Mb：centromeres + HLA/EDAR/LCT/ADH1B/ALDH2/SLC24A5 等）→ Oxford haps/sample 转换。遗传图谱用 popgenmethod（Pyrho）群体特异性 map（非 HapMap）：CC/JN→CHB, GZ/HK→CHS, Thai→KHV。修复了 CC chr4（VCF 损坏，从 pgen 重建）和 JN chr10（VCF 缺失）。输出 ~30GB 在 `fastsmc_prep/fastsmc_input/`。 | [2026-06-26_microarray_fastsmc_data_preparation.md](logs/sds/2026-06-26_microarray_fastsmc_data_preparation.md) |
+
 ## Notes To Keep
 
 - 当前优先保证：每个关键测试或生产结果都有 detailed log，每张关键图都有 source path，每个关键结果文件都有 absolute path。
