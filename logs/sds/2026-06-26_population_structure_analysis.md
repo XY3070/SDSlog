@@ -149,6 +149,7 @@ K selection via Δ-K/stab    Randomness flat across K     Rare: 3.5× more SNP a
 3. **PCA-UMAP common** (108k SNPs, MAF>1%) shows geographic structure on continuous manifold — the gradient that ADMIXTURE bins into discrete clusters.
 4. **PCA-UMAP rare** (376k SNPs, MAF 0.1%–1%) provides denser SNP coverage — 74% LD-prune retention vs 19% for common — potentially capturing finer-scale recent demographic events.
 5. **Rare-variant QC** (2026-06-29): 32 samples in 2 tight UMAP clusters removed. Root cause: PC1 vs singleton_count r = −0.50 — rare-variant PCA is a data-quality axis. HK within-region UMAP spread reduced 46% after removal. PC1~singleton correlation unchanged (systemic, not limited to outliers).
+6. **Poor-separation diagnosis** (2026-06-29): Within-China genetic differentiation is subtle (Fst ~ 0.001–0.002). PC1 captures South–North cline (eta²=0.41) but explains only 11% of total variance. Singleton count confound is 60% as strong as biological signal. Only 3 effective groups (South/East/North), not 6 regions. UMAP amplifies noise because PC2–PC50 are noise-dominated. Call-rate 0.95→0.97 has negligible effect.
 
 ## Script inventory
 
@@ -271,3 +272,134 @@ umap_9k/
     9k_snp_qc_rare_clean_umap_pc12_bicolor.png   ← R=PC1, G=PC2 bicolor
     9k_snp_qc_rare_clean_umap.tsv                ← coords + metadata (4,351 rows)
 ```
+
+## Step 5 — SNP call-rate sensitivity & poor-separation diagnosis (2026-06-29)
+
+### Call-rate threshold
+
+**Current QC:** variant missingness ≤ 5% (call rate ≥ 0.95) in `step1_snp_qc.sh`.
+Raised to **call rate ≥ 0.97** (`--geno 0.03`). Impact: 103,159 / 14,558,211 variants removed (0.7%).
+
+### Call-rate 0.97 re-run results
+
+| Dataset | N samples | MAF SNPs | LD-pruned | PC1~singleton r |
+|---|---|---|---|---|
+| Common 0.95 (v2) | 4,383 | 579,979 | 85,811 (14.8%) | −0.495 |
+| Common 0.97 | 4,383 | 573,550 | 84,689 (14.8%) | −0.494 |
+| Rare 0.95 (orig) | 4,382 | 508,963 | 376,481 (74.0%) | −0.500 |
+| Rare 0.97 | 4,383 | 504,181 | 372,851 (74.0%) | −0.500 |
+
+**Call rate 0.95 → 0.97 has negligible effect.** SNP yield changes < 1.5%. PC1~singleton correlation unchanged. All 32 previously-identified outliers remain fully outside 1-99% UMAP range in call-rate-0.97 run.
+
+### Why population structure cannot be separated well
+
+#### 1. PCA signal is weak — this is a within-China cohort
+
+| Metric | Common (MAF>1%) | Rare (0.1%–1%) |
+|---|---|---|
+| PC1 variance explained | 11.5% | 6.2% |
+| PC1-2 cumulative | 13.9% | 9.1% |
+| PC1-10 cumulative | 30.3% | 26.0% |
+
+For comparison: inter-continental studies (e.g., 1KGP) typically show PC1 explaining 30–50% of variance. Within-China genetic differentiation is ~20× weaker than inter-continental. Most genetic variation is within-region, not between-region.
+
+#### 2. Structure is 1-dimensional: South–East–North cline
+
+PC1 ANOVA by region: **F=561.6, p≈0, eta²=0.41** (common) — highly significant. But PC2 eta² drops to 0.005. Only PC1 carries biological signal; PC2–PC50 are noise-dominated.
+
+PC1 mean by region (common variants):
+
+| Region | PC1 mean | singleton mean | Interpretation |
+|---|---|---|---|
+| Guangzhou (GZ) | +0.0041 | 622 | South |
+| Shenzhen (SZ) | −0.0031 | 616 | South |
+| HongKong (HK) | +0.0046 | 595 | South |
+| Shanghai (SH) | −0.0137 | 431 | East |
+| Jinan (JN) | −0.0220 | 958 | North |
+| JiNing (JiN) | −0.0221 | 949 | North |
+
+Pairwise Cohen's d on PC1:
+
+| Pair | Cohen's d | Separation |
+|---|---|---|
+| South vs North (GZ–JN) | **3.1** | Clear |
+| South vs East (GZ–SH) | **2.1** | Moderate |
+| East vs North (SH–JN) | **1.6** | Weak-moderate |
+| GZ vs SZ (both South) | **0.6** | None |
+| JN vs JiN (both North) | **0.03** | None |
+
+**Only 3 effective groups** (South / East / North), not 6 regions. Within-group regions (GZ/SZ/HK and JN/JiN) are indistinguishable.
+
+#### 3. PC1 is confounded with sequencing depth
+
+| Signal | Common PC1 r² | Rare PC1 r² |
+|---|---|---|
+| Region (eta²) | **0.410** | **0.393** |
+| Singleton count (r²) | **0.244** | **0.250** |
+| F_MISS (r²) | 0.000 | 0.000 |
+
+PC1 captures both biology (South–North cline) AND technical artifact (singleton count). F_MISS (missingness) is NOT the confound — singleton count is. Singleton count varies 2.2× across regions (SH=431 vs JN=958), likely due to systematic sequencing batch/site effects.
+
+**Confound/region ratio = 0.6×** — singleton count explains ~60% as much PC1 variance as true geography.
+
+#### 4. UMAP amplifies noise when signal is low-dimensional
+
+- UMAP receives 50 PCs but only PC1 has biological signal
+- Noise-dominated PCs 2–50 create spurious local structure → "radial dots"
+- Rare variants amplify this: weaker signal (PC1=6.2%) + same confound = more UMAP artifacts
+- Tight clusters in UMAP are artifacts from samples with similar singleton-count profiles, not genuine sub-populations
+
+#### 5. Common vs rare: neither separates well, but for different reasons
+
+**Common variants (MAF>1%):**
+- Stronger biological signal (PC1=11.5%)
+- But capture deep ancestry → within-China differentiation is recent (<10k years)
+- Most common variants predate population split → limited resolution for fine structure
+- Result: 1 continuous gradient, no discrete clusters
+
+**Rare variants (MAF 0.1%–1%):**
+- Weaker biological signal (PC1=6.2%) but theoretically capture recent events
+- Much more sensitive to sequencing depth variation → stronger confound
+- More SNPs survive LD prune (74% vs 15%) but signal-to-noise lower
+- Result: confound-dominated, "radial dot" artifacts
+
+### Root cause summary
+
+```
+Within-China genetic differentiation is subtle (Fst ~ 0.001–0.002)
+    ↓
+PC1 captures South–North cline (eta²=0.41) but explains only 11% of total variance
+    ↓
+PC2–PC50 are noise-dominated → UMAP spreads noise into 2D → no clear clusters
+    ↓
+Singleton count varies 2.2× by region (batch effect) → r²=0.24 on PC1
+    ↓
+Confound is 60% as strong as biological signal → cannot separate geography from batch
+```
+
+### Recommendations
+
+1. **Regress out singleton count** from genotype PCs before UMAP/clustering
+2. **Use only PC1–PC3** for UMAP (not PC1–PC50) to reduce noise amplification
+3. **Apply singleton-count-based QC** before rare-variant analysis (exclude bottom decile)
+4. **Use supervised methods** (e.g., region-labeled discriminant analysis) rather than unsupervised PCA-UMAP for population structure
+5. **For paper-facing figures**: present PC1 as continuous South–North cline rather than discrete clusters; this is the true biological structure
+
+### Call-rate 0.97 outputs
+
+```
+umap_9k/
+    snp_qc_callrate097.{bed,bim,fam}               ← 14,455,052 variants (call rate ≥ 0.97)
+    9k_snp_qc_v2_umap*.png                         ← common MAF>0.01, call rate 0.95 (regenerated)
+    9k_snp_qc_callrate097_umap*.png                ← common MAF>0.01, call rate 0.97
+    9k_snp_qc_rare_callrate097_umap*.png           ← rare MAF 0.001–0.01, call rate 0.97
+    9k_snp_qc_callrate097_umap.tsv                 ← common coords (4,383 rows)
+    9k_snp_qc_rare_callrate097_umap.tsv            ← rare coords (4,383 rows)
+```
+
+### Script inventory (new)
+
+| Script | Purpose | Location |
+|---|---|---|
+| `run_umap_callrate097.sh` | 3-dataset PCA-UMAP pipeline (common 0.95 + common 0.97 + rare 0.97) | `SDSworkspace/oneoff/` |
+| `plot_umap_generic.py` | Parameterized UMAP + 5-view plotting for any PCA prefix | `SDSworkspace/oneoff/` |
