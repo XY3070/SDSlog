@@ -150,7 +150,7 @@ K selection via Δ-K/stab    Randomness flat across K     Rare: 3.5× more SNP a
 4. **PCA-UMAP rare** (376k SNPs, MAF 0.1%–1%) provides denser SNP coverage — 74% LD-prune retention vs 19% for common — potentially capturing finer-scale recent demographic events.
 5. **Rare-variant QC** (2026-06-29): 32 samples in 2 tight UMAP clusters removed. Root cause: PC1 vs singleton_count r = −0.50 — rare-variant PCA is a data-quality axis. HK within-region UMAP spread reduced 46% after removal. PC1~singleton correlation unchanged (systemic, not limited to outliers).
 6. **Poor-separation diagnosis** (2026-06-29): Within-China genetic differentiation is subtle (Fst ~ 0.001–0.002). PC1 captures South–North cline (eta²=0.41) but explains only 11% of total variance. Singleton count confound is 60% as strong as biological signal. Only 3 effective groups (South/East/North), not 6 regions. UMAP amplifies noise because PC2–PC50 are noise-dominated. Call-rate 0.95→0.97 has negligible effect.
-7. **Re-analysis with residualization** (2026-06-29): Singleton count regressed from PCs → confound completely removed (r=-0.50→0.00). Only 4 informative PCs retained. UMAP with n_neighbors={30,50,80} on residual PCs produces smoother manifold. Southern superpop rare-variant PCA confirms no sub-structure within GZ/SZ/HK. badMIXTURE misfit is partly biological (continuous cline vs discrete model) and partly technical (singleton confound). After residualization, the biological cline is isolated.
+7. **SDS readiness** (2026-06-29): PC2-4 characterized (PC2=weak, PC3=noise, PC4=sex+case/control). Case/control (SLE) distribution highly uneven across regions (0-70%), confounded with PC1 (d=0.428) and singleton count. Cohort freeze manifest written: 4,341 samples pass all QC gates. Population structure analysis complete for SDS support.
 
 ## Script inventory
 
@@ -404,6 +404,9 @@ umap_9k/
 |---|---|---|
 | `run_umap_callrate097.sh` | 3-dataset PCA-UMAP pipeline (common 0.95 + common 0.97 + rare 0.97) | `SDSworkspace/oneoff/` |
 | `plot_umap_generic.py` | Parameterized UMAP + 5-view plotting for any PCA prefix | `SDSworkspace/oneoff/` |
+| `analyze_population_structure.py` | 6-part re-analysis: informative PCs, residualization, UMAP, southern PCA, metrics | `SDSworkspace/oneoff/` |
+| `run_reanalysis_pipeline.sh` | Shell wrapper: southern PCA subsetting + Python analysis | `SDSworkspace/oneoff/` |
+| `cohort_freeze_sds.tsv` | SDS-ready cohort freeze manifest (4,341 pass samples) | `SDSworkspace/manifests/` |
 
 ## Step 6 — 6-Part re-analysis: residualization, informative PCs, southern subset (2026-06-29)
 
@@ -518,3 +521,56 @@ population_structure_reanalysis/
         southern_*_pca.eigenvec / .eigenval        ← southern PCA results
 ```
 
+## Step 7 — SDS readiness: case/control confound & cohort freeze (2026-06-29)
+
+### PC2-4: what the other effective dimensions capture
+
+After singleton-count residualization, the 4 informative PCs were tested against region, sex, and phenotype (SLE vs control):
+
+| PC | Region eta² | Sex (d) | SLE vs control (d) | Interpretation |
+|---|---|---|---|---|
+| PC1 | **0.227** | −0.234 | **0.428** | South-North cline partially confounded with case/control |
+| PC2 | 0.001 | −0.014 | 0.156 | Weak signal, possibly batch or drift |
+| PC3 | 0.001 | −0.020 | 0.002 | Pure noise/drift |
+| PC4 | 0.003 | 0.201 | **−0.422** | Sex + case/control structure |
+
+**PC1 captures both geography and case/control.** SLE cases have lower singleton counts than controls (626 vs 678, p<0.001). SLE distribution is highly uneven across regions:
+
+| Region | % SLE | PC1 position | Singleton mean |
+|---|---|---|---|
+| Guangzhou | 0% | South (+) | 622 |
+| Shenzhen | **70%** | South (0) | 616 |
+| HongKong | **50%** | South (+) | 595 |
+| Shanghai | 7% | East (−) | 431 |
+| Jinan | 0% | North (−) | 958 |
+| JiNing | **49%** | North (−) | 949 |
+
+Case/control status is confounded with region, PC1, and singleton count. This is noted as a population structure observation — no downstream SDS modeling recommendations made.
+
+### Cohort freeze manifest for SDS
+
+**File:** `SDSworkspace/manifests/cohort_freeze_sds.tsv`
+
+| Category | Count | Flag |
+|---|---|---|
+| PASS (include) | **4,341** | — |
+| singleton_extreme_umap | 32 | exclude |
+| freeze_excluded (high_het_5sd) | 10 | exclude |
+| no_singleton_data | 10 | exclude |
+| **Total** | 4,393 | — |
+
+Manifest columns: Sample, Population, Sex, Phenotype, Region, Superpopulation, ExclusionStatus, ExclusionReason, PC1_original, PC1_residualized, singleton_count, F_MISS, F_het, SDS_inclusion_flag, SDS_include.
+
+PC1_residualized is PC1 after regressing out singleton_count — the singleton-independent population axis.
+
+### Conclusion: population structure analysis complete for SDS support
+
+**Sufficient findings:**
+1. Structure is a 1D continuous South-North cline, not discrete clusters
+2. 3 effective geographic groups (South/East/North), 6 labeled regions collapse to 3
+3. Singleton count confound identified, removable via residualization (r: −0.50 → 0.00)
+4. Southern superpop (GZ/SZ/HK) confirmed genetically homogeneous
+5. Case/control distribution documented — uneven across regions, confounded with PC1
+6. 4,341 samples pass all QC gates for SDS inclusion
+
+**Cohort freeze manifest ready** at `SDSworkspace/manifests/cohort_freeze_sds.tsv`.
