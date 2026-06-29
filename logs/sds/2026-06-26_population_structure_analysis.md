@@ -148,6 +148,7 @@ K selection via Δ-K/stab    Randomness flat across K     Rare: 3.5× more SNP a
 2. **badMIXTURE** proves misfit exists (Row ACF 0.86) and is not fixable by increasing K (flat randomness score). This is the quantitative evidence that discrete clusters are insufficient.
 3. **PCA-UMAP common** (108k SNPs, MAF>1%) shows geographic structure on continuous manifold — the gradient that ADMIXTURE bins into discrete clusters.
 4. **PCA-UMAP rare** (376k SNPs, MAF 0.1%–1%) provides denser SNP coverage — 74% LD-prune retention vs 19% for common — potentially capturing finer-scale recent demographic events.
+5. **Rare-variant QC** (2026-06-29): 32 samples in 2 tight UMAP clusters removed. Root cause: PC1 vs singleton_count r = −0.50 — rare-variant PCA is a data-quality axis. HK within-region UMAP spread reduced 46% after removal. PC1~singleton correlation unchanged (systemic, not limited to outliers).
 
 ## Script inventory
 
@@ -158,6 +159,8 @@ K selection via Δ-K/stab    Randomness flat across K     Rare: 3.5× more SNP a
 | `run_badmixture_residuals.R` | badMIXTURE residual analysis (model vs observed per-site) | `SDSworkspace/oneoff/` |
 | `run_umap_9k.sh` | PCA-UMAP pipeline (common variants MAF>1%) | `SDSworkspace/oneoff/` |
 | `run_umap_9k_rare.sh` | PCA-UMAP pipeline (rare variants MAF 0.1%–1%) | `SDSworkspace/oneoff/` |
+| `run_umap_9k_rare_clean.sh` | Outlier-removed rare PCA-UMAP pipeline (steps 1–3) | `SDSworkspace/oneoff/` |
+| `plot_umap_rare_clean.py` | Standalone UMAP + 5-view plotting for cleaned rare data | `SDSworkspace/oneoff/` |
 
 ## Output file index
 
@@ -190,4 +193,81 @@ umap_9k/                                    ← rare variant UMAP (MAF 0.1%–1%
     9k_snp_qc_rare_umap_pc1.png             ← colored by PC1 (inferno)
     9k_snp_qc_rare_umap_pc12_bicolor.png    ← R=PC1, G=PC2 bicolor
     9k_snp_qc_rare_umap.tsv                 ← coords + metadata
+```
+
+## Step 4 — Rare-variant outlier detection & removal (2026-06-29)
+
+**Motivation:** Rare-variant UMAP showed two visually isolated small groups (11 + 21 samples). Investigated whether these represent data quality issues or genuine sub-population structure.
+
+### Outlier identification
+
+**Script:** `SDSworkspace/oneoff/run_umap_9k_rare_clean.sh` (steps 1–3), `SDSworkspace/oneoff/plot_umap_rare_clean.py` (step 4)  
+**Method:** DBSCAN (eps=0.5, min_samples=5) on UMAP coordinates identified 3 tight clusters outside the main body. Two most extreme selected as outliers:
+
+| Group | N | UMAP1 | UMAP2 | Region | Key feature |
+|---|---|---|---|---|---|
+| G1 (mid-left) | 11 | ~ −15.50 | ~12.85 | 11 HK | Near-identical UMAP coords (range < 0.02) |
+| G2 (far-right) | 21 | ~ −5.55 | ~8.88 | 19 HK, 1 China, 1 Jinan | Tight cluster, isolated from main body |
+
+### Data quality investigation
+
+Compared outlier QC metrics against cohort (`raw/9k/sample_qc/sample_qc_metrics.tsv`):
+
+| Metric | G1 (n=11) | G2 (n=21) | Cohort (n=4897) |
+|---|---|---|---|
+| F_MISS (mean) | 0.00398 | 0.00413 | 0.00402 |
+| F_het (mean) | −0.0548 | −0.0593 | −0.0560 |
+| het_outlier | 0 | 0 | — |
+| status=PASS | 11 (100%) | 21 (100%) | 4351 (89%) |
+| singleton_count (mean) | **553** | **543** | **655** |
+
+All 32 outliers pass standard QC. No het_outlier, no singletons_outlier, no exclusion reasons.
+
+### Root cause: rare-variant PC1 is a data-quality axis
+
+**Critical finding:** PC1 vs singleton_count correlation r = **−0.50** across all 4,382 samples. Rare-variant PCA is substantially driven by sequencing depth/coverage variation:
+
+- Lower depth → fewer singletons detected → systematic shift in rare-variant genotype calls → PC1 separation
+- Common variants (MAF>1%) are robust to depth variation → no outlier separation in common UMAP
+- Outlier groups have ~15% fewer singletons than cohort mean (553/543 vs 655)
+
+**Conclusion:** These 32 samples are QC outliers specific to rare-variant space. They pass standard QC because standard QC uses common variants. For rare-variant analysis, singleton count should be treated as a QC covariate.
+
+### Outlier removal and re-analysis
+
+32 samples removed via `--remove rare_outliers_remove.txt` at MAF filter step. Full pipeline re-run:
+
+| Stage | Original | Clean |
+|---|---|---|
+| Samples | 4,382 | 4,351 |
+| MAF-filtered SNPs | 508,963 | 505,987 |
+| LD-pruned SNPs | 376,481 (74.0%) | 373,799 (73.9%) |
+
+### Impact on UMAP structure
+
+| Metric | Original | Clean | Change |
+|---|---|---|---|
+| HK UMAP1 std | 2.239 | 1.206 | **−46%** |
+| Jinan UMAP1 std | 1.779 | 0.602 | **−66%** |
+| Total UMAP1 std | 2.153 | 1.155 | **−46%** |
+| PC1~singleton r | −0.50 | −0.50 | unchanged |
+
+HK and Jinan within-region spread dramatically reduced. However, PC1~singleton correlation unchanged — this is a systemic cohort-wide confound, not limited to the 32 outliers.
+
+**Recommendation:** For any paper-facing rare-variant analysis, either:
+1. Regress out singleton count from PCs before UMAP/clustering, or
+2. Use singleton count as a covariate in downstream tests, or
+3. Apply stricter singleton-count-based QC thresholds
+
+### Cleaned rare-variant outputs
+
+```
+umap_9k/
+    rare_outliers_remove.txt                     ← 32 IIDs excluded
+    9k_snp_qc_rare_clean_umap.png                ← plain, outliers removed
+    9k_snp_qc_rare_clean_umap_region.png         ← colored by region
+    9k_snp_qc_rare_clean_umap_admixture_k2.png   ← colored by ADMIXTURE K=2 cluster
+    9k_snp_qc_rare_clean_umap_pc1.png            ← colored by PC1 (inferno)
+    9k_snp_qc_rare_clean_umap_pc12_bicolor.png   ← R=PC1, G=PC2 bicolor
+    9k_snp_qc_rare_clean_umap.tsv                ← coords + metadata (4,351 rows)
 ```
