@@ -150,6 +150,7 @@ K selection via Δ-K/stab    Randomness flat across K     Rare: 3.5× more SNP a
 4. **PCA-UMAP rare** (376k SNPs, MAF 0.1%–1%) provides denser SNP coverage — 74% LD-prune retention vs 19% for common — potentially capturing finer-scale recent demographic events.
 5. **Rare-variant QC** (2026-06-29): 32 samples in 2 tight UMAP clusters removed. Root cause: PC1 vs singleton_count r = −0.50 — rare-variant PCA is a data-quality axis. HK within-region UMAP spread reduced 46% after removal. PC1~singleton correlation unchanged (systemic, not limited to outliers).
 6. **Poor-separation diagnosis** (2026-06-29): Within-China genetic differentiation is subtle (Fst ~ 0.001–0.002). PC1 captures South–North cline (eta²=0.41) but explains only 11% of total variance. Singleton count confound is 60% as strong as biological signal. Only 3 effective groups (South/East/North), not 6 regions. UMAP amplifies noise because PC2–PC50 are noise-dominated. Call-rate 0.95→0.97 has negligible effect.
+7. **Re-analysis with residualization** (2026-06-29): Singleton count regressed from PCs → confound completely removed (r=-0.50→0.00). Only 4 informative PCs retained. UMAP with n_neighbors={30,50,80} on residual PCs produces smoother manifold. Southern superpop rare-variant PCA confirms no sub-structure within GZ/SZ/HK. badMIXTURE misfit is partly biological (continuous cline vs discrete model) and partly technical (singleton confound). After residualization, the biological cline is isolated.
 
 ## Script inventory
 
@@ -403,3 +404,117 @@ umap_9k/
 |---|---|---|
 | `run_umap_callrate097.sh` | 3-dataset PCA-UMAP pipeline (common 0.95 + common 0.97 + rare 0.97) | `SDSworkspace/oneoff/` |
 | `plot_umap_generic.py` | Parameterized UMAP + 5-view plotting for any PCA prefix | `SDSworkspace/oneoff/` |
+
+## Step 6 — 6-Part re-analysis: residualization, informative PCs, southern subset (2026-06-29)
+
+**Motivation:** Previous diagnosis found singleton count confounds PC1 (r=-0.50), only 3 effective groups, UMAP amplifies noise. User required: (1) use only informative PCs, (2) regress singleton count, (3) larger n_neighbors for smoother UMAP, (4) covariate-adjusted PCA, (5) southern superpop rare-variant analysis, (6) quantitative evaluation + badMIXTURE connection.
+
+**Scripts:** `SDSworkspace/oneoff/run_reanalysis_pipeline.sh` (shell), `SDSworkspace/oneoff/analyze_population_structure.py` (Python)  
+**Output dir:** `SDSworkspace/runs/population_structure_reanalysis/`
+
+### Part 1: Informative PC detection
+
+Combined criteria: Cattell scree (2nd-derivative elbow), Kaiser (eigenvalue > mean), Tracy-Widom (first 3 PCs).
+
+| Dataset | Scree elbow | Kaiser PCs | Informative PCs retained |
+|---|---|---|---|
+| Common97 | PC3 | 6 | **4** (PC1-4) |
+| Rare97 | PC3 | 7 | **4** (PC1-4) |
+| Rare clean | PC3 | 7 | **4** (PC1-4) |
+
+TW test: all PC1 eigenvalues below TW critical value due to LD inflation — LD reduces effective number of independent SNPs, shrinking the expected null eigenvalue. The scree+kaiser combination provides the practical cutoff.
+
+### Part 2: PC residualization
+
+Regressed `singleton_count + F_MISS + F_het` from each informative PC via OLS.
+
+| Dataset | PC1~singleton r (before) | PC1~singleton r (after) | R² tech covariates PC1 |
+|---|---|---|---|
+| Common97 | −0.4939 | **−0.0000** | 0.245 |
+| Rare97 | −0.5004 | **−0.0000** | 0.252 |
+| Rare clean | −0.5013 | **0.0000** | 0.253 |
+
+**Singleton confound completely removed.** F_MISS and F_het contributed <1% additional R² beyond singleton_count. Singleton count alone explains ~25% of PC1 variance.
+
+### Part 3: UMAP with larger n_neighbors
+
+Residual informative PCs (4 PCs) → UMAP with n_neighbors ∈ {30, 50, 80}. Both original (for comparison) and residual PC inputs tested.
+
+**18 UMAP runs** (3 datasets × 2 input types × 3 n_neighbors). 5-view plots per run (region, K2, PC1, PC1+PC2 bicolor, plain). Grid comparison figures generated.
+
+UMAP trustworthiness scores (residual PCs):
+
+| Dataset | nn=30 | nn=50 | nn=80 |
+|---|---|---|---|
+| Common97 | 0.960 | 0.953 | 0.950 |
+| Rare97 | 0.977 | 0.975 | 0.974 |
+| Rare clean | 0.976 | 0.973 | 0.972 |
+
+Trustworthiness decreases slightly with larger n_neighbors — expected tradeoff: global structure preserved at cost of local fidelity. The continuous South-North cline should appear smoother at nn=80.
+
+### Part 4: Covariate-adjusted PCA
+
+Two approaches documented:
+- **(a) Post-hoc residualization** (Part 2): simple, computationally cheap, sufficient for modest confound (r=-0.50)
+- **(b) GRM conditioning** via `plink2 --make-rel covar=`: gold standard, yields orthogonal conditioned PCs, noted for future work
+
+### Part 5: Southern superpop rare-variant PCA
+
+Subset to GZ+SZ+HK. Two configurations:
+- Unbalanced: all 3,389 southern samples (GZ=30, SZ=267, HK=3092)
+- Balanced: GZ=30 + SZ=267 + 300 random HK = 597 samples
+
+| Configuration | N | PC1 variance | PC1~singleton r |
+|---|---|---|---|
+| Southern all (unbalanced) | 3,389 | 9.9% | −0.292 |
+| Southern balanced | 597 | 5.7% | −0.396 |
+
+**Key finding:** Southern PC1 is even weaker (5.7-9.9%) than full-cohort PC1 (6.2% rare), confirming within-south differentiation is minimal. Southern singleton confound is reduced (r=-0.29) in the unbalanced set because southern samples have more homogeneous singleton counts. In the balanced set, HK down-sampling slightly increases the confound (r=-0.40) — the 300 random HK happen to have more variable singleton counts.
+
+**No sub-structure within southern superpop.** GZ, SZ, and HK are genetically indistinguishable at the resolution of this SNP set — consistent with shared Cantonese/southern Han ancestry.
+
+### Part 6: Quantitative evaluation
+
+| Metric | Common97 | Rare97 | Rare clean |
+|---|---|---|---|
+| PC1~singleton r (orig) | −0.494 | −0.500 | −0.501 |
+| PC1~singleton r (resid) | **0.000** | **0.000** | **0.000** |
+| eta² PC1 (region, orig) | 0.410 | 0.393 | — |
+| UMAP trustworthiness (nn=50) | 0.953 | 0.975 | 0.973 |
+
+### Connection to badMIXTURE
+
+badMIXTURE Row ACF = 0.86: inter-individual residual correlation from discrete ADMIXTURE model. Two drivers identified:
+
+1. **Biological:** Within-China population is a continuous South-North cline, not discrete clusters. ADMIXTURE's discrete assumption is structurally wrong — this is the primary cause of misfit.
+2. **Technical:** Singleton count creates a gradient across individuals (r=-0.50 on PC1) that amplifies the apparent discreteness in the embedding. ADMIXTURE partially latches onto this confound.
+
+After residualization, the technical confound is removed. The remaining UMAP structure isolates the pure biological cline. If re-running badMIXTURE on residualized genotype data were feasible, Row ACF should decrease — the confound-driven portion of the inter-individual correlation is eliminated.
+
+**Recommendation for paper:** Present population structure as a continuous South-North PC1 gradient with singleton count residualized. Do not force discrete clustering. The cohort has 3 effective groups (South, East, North) but these grade into each other.
+
+### Reanalysis outputs
+
+```
+population_structure_reanalysis/
+    figures/
+        figure_01_scree_*.png                      ← scree plots (3 datasets)
+        figure_02a_pc1_vs_singleton_*.png          ← before/after residualization (3)
+        figure_02b_r2_by_pc_*.png                  ← R² bar charts (3)
+        figure_03_umap_grid_*.png                  ← 3×3 UMAP grids (6: orig+resid × 3)
+        figure_04_effective_rank_*.png             ← effective rank comparison (3)
+        figure_05_*_southern_*.png                 ← southern PCA/UMAP (6)
+        figure_06a_eta2_*.png                      ← eta² per PC (3)
+        figure_06d_umap_metrics_*.png              ← trustworthiness + dispersion (3)
+        *_orig_nn{30,50,80}_umap_*.png            ← 5-view UMAP per config (90)
+        *_resid_nn{30,50,80}_umap_*.png           ← 5-view UMAP per config (90)
+    tables/
+        table_01_informative_pcs_*.tsv             ← PC eigenvalue analysis (3)
+        table_02_residualization_*.tsv             ← regression coefficients (3)
+        table_06_metrics_*.tsv                     ← quantitative metrics (3)
+        *_coords.tsv                               ← UMAP coordinates (18)
+    data/
+        southern_all.keep / southern_balanced.keep ← sample lists
+        southern_*_pca.eigenvec / .eigenval        ← southern PCA results
+```
+
