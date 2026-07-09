@@ -55,12 +55,32 @@ All 10 chromosomes completed without failures. Combined with existing chr1,4,6,1
 
 ## Analysis Masks
 
-- **Source:** UCSC hg38 gap track (centromeres) + derived flanks
-- **Centromere:** 22 regions (UCSC gap table type=centromere)
-- **Pericentromere:** 22 regions (±2Mb from centromere boundaries)
-- **Subtelomere:** 66 regions (500kb from chromosome ends)
-- **Combined exclusion mask:** 110 regions in `masks/exclusion_mask_combined.bed`
-- **Note:** Segmental duplications and low-mappability tracks pending for full mask
+Canonical location: `SDSworkspace/input/reference/mask/` (symlinked from `sds_rebuild/masks/`)
+
+### Authoritative UCSC-derived masks (GRCh38)
+- **Primary:** `grch38_combined_blacklist.bed` — 2,886 merged exclusion regions
+- **Centromere:** 22 regions (UCSC cytoBandIdeo acen)
+- **Pericentromeric:** 11 regions + 44-region blacklist (UCSC cytoBandIdeo gvar+stalk)
+- **Assembly gaps:** 507 regions (UCSC gap table)
+- **Segmental duplications:** 3,042 regions (UCSC genomicSuperDups, fracMatch≥0.95)
+- **Accessibility:** 3,887,975 regions (inverted 1KGP strict mask)
+- **Subtelomeric:** 44 regions
+- **Zero recombination:** 29 regions
+- Provenance: `mask_provenance.json` (2026-06-07 build)
+
+### chr1 Outlier Analysis
+
+83 SNPs with |rSDS| > 100 in raw chr1 output:
+- **12-17Mb cluster (23 SNPs):** segdup + assembly gap region → covered by combined_blacklist
+- **147-150Mb cluster (22 SNPs):** pericentromeric heterochromatin 1q12 → covered by combined_blacklist  
+- **Scattered (38 SNPs):** DAF < 0.05 low-frequency variants where gamma model poorly calibrated
+- 47/53 extreme outliers covered by combined_blacklist; remaining filtered by MAF≥0.05 gate
+
+DAF distribution of |rSDS| > 50:
+- DAF < 0.01: 16,595 SNPs → all filtered by MAF≥0.05
+- DAF < 0.03: 2,748 → filtered
+- DAF 0.03-0.05: 3 → filtered
+- DAF > 0.05: 246 → these are real signals
 
 ## Postprocessing
 
