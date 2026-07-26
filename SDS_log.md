@@ -36,6 +36,7 @@
 
 | 2026-07-22 | 完成 chr19 最显著峰（chr19:4,748,270-5,023,601）的 LocusZoom + LD 精细结构分析。发现该区域包含**两个独立选择信号**：Signal 1（intergenic: MIR7-3HG/FEM1A, lead chr19:4768268:A:C, SDS=+10.44）和 Signal 2（UHRF1 内含子, lead chr19:4951434:C:T, SDS=+9.34），两者 r²=1.07e-5 完全不连锁。新建可复用脚本 `SDSpipeline/scripts/postprocess/plot_locuszoom.py`（matplotlib + PLINK2 LD + Ensembl REST API 基因注释 + pyrho CHB 遗传图谱）。 | [2026-07-22_chr19_locuszoom_ld_structure.md](logs/sds/2026-07-22_chr19_locuszoom_ld_structure.md) |
 | 2026-07-25 | 将 LocusZoom + LD heatmap 工作流扩展到所有非 MHC 显著峰（chr4 ADH1B, chr11 PTPRJ, chr12 ALDH2 合并区, chr19 region2, chr22 DEPDC5）。chr12 合并为一个 3.1Mb mega-region（包含 5 个子峰，以 rs671 为核心）。所有峰各有 LocusZoom + LD heatmap 两张图。脚本归档到 `SDSworkspace/oneoff/batch_locuszoom_all_peaks.py`。 | [2026-07-22_chr19_locuszoom_ld_structure.md](logs/sds/2026-07-22_chr19_locuszoom_ld_structure.md) |
+| 2026-07-26 | 完成全基因组非 MHC 峰的 LD split（connected components, r²>0.1）+ VEP 功能注释。共分解出 15 个独立 selection signal，其中 2 个 missense（ALDH2 rs671, ADH1B rs1229984），其余为非编码。**发现并修复方法问题**：eQTLGen 为 EUR 人群（~31k 欧洲血样），不适合 Chinese cohort，已在 catalog 中标记为 `eQTLGen_EUR_reference` 并写入 paper-compliance gap。整合 CADD v1.6 deleteriousness score（82GB 预计算文件）。完整 pipeline 记录在 [2026-07-26_ld_split_functional_annotation_pipeline.md](logs/sds/2026-07-26_ld_split_functional_annotation_pipeline.md)。 | [2026-07-26_ld_split_functional_annotation_pipeline.md](logs/sds/2026-07-26_ld_split_functional_annotation_pipeline.md) |
 
 ## Notes To Keep
 
