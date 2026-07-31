@@ -10,7 +10,7 @@
 
 ## 2. Current Data Snapshot
 
-- 2nd QC 后保留 3971 个 WGS 样本，当前工作记录里 NCN / SCN 为 `1255 + 2716 = 3971`。
+- 2nd QC 后保留 4383 个 WGS 样本，当前工作记录里 NCN / SCN 为 `1255 + 2716 = 3971 (historical); current ALL = 4383`。
 - 当前最近期 demography benchmark 的 NCN eligible sample count 为 `1255`，见 [2026-04-23_ncn_recent_ne_benchmark.md](logs/demography/2026-04-23_ncn_recent_ne_benchmark.md)。
 - 当前主要工作根目录：
   - `SDSlog/`
