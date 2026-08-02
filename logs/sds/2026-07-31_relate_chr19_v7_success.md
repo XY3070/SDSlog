@@ -50,20 +50,36 @@ v6's OOM crash (33GB/section) was caused by using **9466 samples** (full joint-c
 With completed `.anc` and `.mut` files, can now run:
 
 ```
-# 1. Re-estimate branch lengths (optional, uses coalescent rate)
-RelateCoalescentRate --mode ReEstimateBranchLengths \
-    -i UKBQC_NCN_chr19 -o UKBQC_NCN_chr19_reestimated --coal NCN.coal
-
-# 2. Relate SDS (direct comparison with our SDS)
+# 1. Relate SDS (direct comparison with our SDS)
 RelateSelection --mode SDS \
-    -i UKBQC_NCN_chr19 -o chr19_relate_sds
+    -i UKBQC_NCN_chr19 -o NCN_chr19_relate_sds
+# DONE — 27MB .SDS output, 728K SNPs, rSDS range: -0.39 to 8.48
 
-# 3. Relate Selection p-values
+# 2. Relate Selection p-values
 DetectSelection.sh \
-    -i UKBQC_NCN_chr19 -o chr19_selection -m 1.25e-8
+    -i UKBQC_NCN_chr19 -o NCN_chr19_selection -m 1.25e-8
+# Running
+
+# 3. CLUES2 for time-resolved selection coefficients
+# Script ready: SDSpipeline/scripts/orthogonal/run_clues2_all_chr19.sh
 ```
 
-Then generate mirror Manhattan: our SDS (top) vs Relate SDS/Selection (bottom).
+## ALL-population Relate (chr19)
+
+- **Phasing**: chr19 phased VCF complete (458MB, 4383 samples, 3.8M SNPs)
+- **Haps/Sample**: Converted (29GB haps.gz, 72KB sample.gz)
+- **Relate job**: 503507 (4 nodes, 512GB, 72hr, --threads 2)
+- **CLUES2 script**: `SDSpipeline/scripts/orthogonal/run_clues2_all_chr19.sh` — run after Relate completes
+
+## 2026-08-02: RelateSelection NCN chr19 results
+
+RelateSelection --mode SDS completed on NCN chr19 trees:
+- 728,248 SNPs with rSDS values
+- All 7 chr19 SDS signals present in Relate SDS output
+- Raw rSDS values (not standardized) — needs frequency bin normalization
+- Top Relate rSDS signals cluster at chr19:54.6Mb (different from our SDS at 4.7-10.7Mb)
+- RelateSelection --mode Selection running for p-values
+- CLUES2 script adapted for ALL chr19: `run_clues2_all_chr19.sh`
 
 ## Lesson: Data Scale Matters
 
