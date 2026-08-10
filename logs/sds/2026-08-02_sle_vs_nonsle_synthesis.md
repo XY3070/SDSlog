@@ -219,8 +219,9 @@ Q4: What WOULD establish a real case/control difference?
 | File | Description |
 |---|---|
 | `threeway_merge.tsv` | 4,452,790 variants, 11 columns |
-| `mirror_manhattan_SLE_vs_nonSLE.png` | Mirror Manhattan |
-| `delta_manhattan_SLE_minus_nonSLE.png` | Delta Manhattan |
+| `mirror_manhattan_SLE_vs_nonSLE_CMplot.png` | CMplot Mirror Manhattan (2026-08-05 redraw; SLE top / nonSLE bottom, peak annotations: shared black / SLE-only red / nonSLE-only blue) |
+| ~~`mirror_manhattan_SLE_vs_nonSLE.png`~~ | ~~Mirror Manhattan~~ — superseded, deleted 2026-08-05 |
+| ~~`delta_manhattan_SLE_minus_nonSLE.png`~~ | ~~Delta Manhattan~~ — superseded, deleted 2026-08-05 |
 
 ### Diagnostic figures (7 files)
 | File | Description |

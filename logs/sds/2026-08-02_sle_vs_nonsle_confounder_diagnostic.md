@@ -175,9 +175,9 @@ All figures in `SDSworkspace/results/production/sds_output/sle_vs_nonsle_compari
 
 ### CMplot Mirror Manhattan
 
-- **File:** `SDSworkspace/results/production/sds_output/sle_vs_nonsle_comparison/mirror_manhattan_SLE_vs_nonSLE.png` (pre-existing)
-- **Purpose:** Genome-wide view of SLE (positive) vs non-SLE (inverted negative) SDS signals.
-- **Expected interpretation:** Most peaks are shared (mirrored). Systematic nonSLE elevation visible as more/bigger downward peaks. Focal divergences (chr19:52.5Mb, chr1:92Mb, chr9:92Mb) require confounder assessment before biological interpretation.
+- **File:** `SDSworkspace/results/production/sds_output/sle_vs_nonsle_comparison/mirror_manhattan_SLE_vs_nonSLE_CMplot.png` (redrawn 2026-08-05; old matplotlib version superseded + deleted — it was not CMplot, no peak annotation)
+- **Purpose:** Genome-wide view of SLE (top panel) vs non-SLE (bottom panel) SDS signals, CMplot standard; shared peaks annotated black, SLE-only red, nonSLE-only blue (see `mirror_peaks.tsv`).
+- **Expected interpretation:** Most peaks are shared (mirrored). Systematic nonSLE elevation visible as more/bigger peaks. Focal divergences (chr19:52.5Mb, chr1:92Mb, chr9:92Mb) require confounder assessment before biological interpretation.
 
 ---
 
@@ -394,9 +394,10 @@ Q0: Is delta_norm ~ delta_rSDS correlation near 1?
 | File | Description |
 |---|---|
 | `threeway_merge.tsv` | 4,452,790 variants × 11 columns |
-| `mirror_manhattan_SLE_vs_nonSLE.png` | Mirror Manhattan plot |
-| `delta_manhattan_SLE_minus_nonSLE.png` | Delta Manhattan plot |
-| `three_panel_comparison.png` | Three-panel (SLE/nonSLE/delta) |
+| `mirror_manhattan_SLE_vs_nonSLE_CMplot.png` | CMplot Mirror Manhattan (2026-08-05 redraw, peak-annotated) |
+| ~~`mirror_manhattan_SLE_vs_nonSLE.png`~~ | ~~Mirror Manhattan~~ — superseded, deleted 2026-08-05 |
+| ~~`delta_manhattan_SLE_minus_nonSLE.png`~~ | ~~Delta Manhattan~~ — superseded, deleted 2026-08-05 |
+| ~~`three_panel_comparison.png`~~ | ~~Three-panel (SLE/nonSLE/delta)~~ — superseded, deleted 2026-08-05 |
 
 ---
 

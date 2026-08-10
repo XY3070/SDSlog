@@ -186,3 +186,99 @@ EHH decay patterns: all 14 signals show strong derived allele EHH persistence ac
 2. Submit genome-wide phasing (chr2-18,20-22) after chr19 pilot confirms
 3. Monitor Relate v7 (503210) → if succeeds, run RelateSelection
 4. Re-run iHS on ALL-phased chr19 for comparison with NCN-only results
+
+## 2026-08-06: ALL Phasing Complete (19/22) + Orthogonal Launch
+
+### Phasing status
+- 19/22 chr phased VCFs complete (chr2,5-22): 4383 samples each, GT-only FORMAT
+- chr1/3/4: killed mid-SHAPEIT5 (SIGINT/OOM), resubmitted as 504162-164
+- chr19 phasing completed earlier (458MB, 3.8M SNPs) — used for Relate ALL
+
+### Jobs launched (ALL cohort)
+| Job | Task | Detail |
+|-----|------|--------|
+| 504162-164 | chr1/3/4 phasing | SHAPEIT5, 16 threads |
+| 504165-183 | iHS chr2,5-22 | selscan --ihs --pmap, pyrho CHB, ALL phased VCF |
+| 504184-197 | EHH 14 signals | chr11,12,19,22 (chr4 ADH1B pending phasing) |
+| 504018 | Relate ALL chr19 | v4 (dedup'd haps, proper gzip, no annot) — running |
+
+### Key technical fixes (ALL data)
+1. **haps.gz not gzipped**: ConvertFromVcf wrote plain text with .gz extension → Relate gzstream misparsed → "unsorted positions" false error. Fixed: proper gzip.
+2. **27,194 duplicate positions** in chr19 haps (multiallelic split at same bp) → dedup'd before Relate.
+3. **GenerateSNPAnnotations segfaults** on ALL data → annot is optional, running without.
+4. **EHH on ALL**: ALL phased VCFs are GT-only (no PP) → no stoi issue; dedup still in script for duplicate positions.
+
+### Remaining
+- chr1/3/4 phasing → iHS chr1/3/4 + EHH chr4 (ADH1B)
+- Relate ALL chr19 → RelateSelection (SDS + Selection modes) → mirror Manhattan vs our SDS
+- CLUES2 on 7 chr19 signals (ALL trees)
+
+## 2026-08-07: ALL iHS/EHH/Relate Fixes
+
+### Three failures diagnosed and fixed
+
+1. **iHS ALL (19 chr) — GLIBCXX crash (exit 1, 66s)**
+   - Root cause: `run_genomewide_ihs.sh` LD_LIBRARY_PATH export inverted:
+     `${LD_LIBRARY_PATH:-sds/lib}:${LD_LIBRARY_PATH}` — when LSF injects its own
+     LD_LIBRARY_PATH (lsfsuite libs), the `:-` default is skipped → sds lib never
+     prepended → selscan can't find GLIBCXX_3.4.20+ → silent exit 1.
+   - NCN worked because env was unset then; ALL runs after LSF env injection.
+   - Fix: unconditional prepend `export LD_LIBRARY_PATH="/data/.../sds/lib:${LD_LIBRARY_PATH:-}"`
+   - Resubmitted: jobs 504317-504335
+
+2. **EHH ALL (14 signals) — 0 haplotypes/0 loci**
+   - Root cause: ALL phased VCFs use chr-prefixed contigs (chr19), NCN used numeric (19).
+     Tabix region `19:start-end` returns nothing on chr19-contig VCF.
+   - Fix: detect contig naming via `tabix -l`, use chr-prefixed region if present.
+   - Resubmitted: jobs 504336-504349
+
+3. **Relate ALL chr19 — "Failed to open chr19_relate.map"**
+   - Root cause: workdir symlink pointed to `run_work_chr19_v6/chr19_relate.map`
+     which was deleted during cleanup.
+   - Fix: relink to `refs/maps/chr19_relate.map` (46,837 entries, verified).
+   - Resubmitted: job 504350 (v5)
+
+### Current jobs
+| Job | Task |
+|-----|------|
+| 504317-335 | iHS ALL chr2,5-22 |
+| 504336-349 | EHH ALL 14 signals |
+| 504350 | Relate ALL chr19 v5 |
+| 504162-164 | chr1/3/4 phasing (still running) |
+
+## 2026-08-07: iHS ALL Fixed + Running (final root causes)
+
+### iHS ALL three-layer failure chain (all fixed)
+
+1. **GLIBCXX** (LD_LIBRARY_PATH inverted — LSF env injection) → unconditional prepend fix
+2. **Map/VCF locus mismatch** (VCF has 121K duplicate positions from multiallelic splits;
+   selscan requires map lines == VCF rows incl. duplicates; `set()` dedup in map build
+   caused 2^64 underflow) → added VCF dedup step before map build
+3. **Truncated dedup cache** (interrupted local test left 29K-row dedup VCF; job reused it)
+   → validation: regenerate if dedup count < n_orig/2
+
+### chr19 ALL iHS pilot (job 504366)
+- 3,803,696 rows → 3,682,668 unique after dedup (121K dups removed)
+- selscan: 119,232 loci after MAF 0.05, ~45 min compute
+- Normalized: 750 extreme (|norm_iHS| > 4), max |iHS| = 9.27
+- **FULL PIPELINE VALIDATED**
+
+### EHH ALL (14 signals, contig fix)
+- ALL VCFs use chr-prefixed contigs (chr19), NCN used numeric → tabix empty
+- Fixed: `tabix -l` contig detection → chr-prefixed region
+- **14/14 signals SUCCESS** (10-16K lines each)
+- EHH decay plots: `ehh/ALL/plots/ehh_decay_ALL_grid.png`
+- Key: MIR7-3, DNM2, TRPV4, ATP2A2 now have EHH in ALL (were absent in NCN due to DAF<0.05)
+- ALDH2 shows strong extended haplotype (der EHH 0.45 vs anc 0.009 at 500kb)
+
+### Current jobs
+| Job | Task |
+|-----|------|
+| 504367-385 | iHS ALL chr2,5-22 (19 jobs, fixed script) |
+| 504350 | Relate ALL chr19 v5 (running, Paint stage) |
+| 504162-164 | chr1/3/4 phasing |
+
+### Pending after iHS
+- iHS chr1/3/4 (after phasing) + EHH chr4 ADH1B
+- RelateSelection (SDS + Selection) on ALL chr19 trees
+- Mirror Manhattan: our SDS vs Relate SDS

@@ -98,9 +98,10 @@ Significant chromosomes (|mean delta| > 0.01):
 | File | Path |
 |---|---|
 | Three-way merge | `SDSworkspace/results/production/sds_output/sle_vs_nonsle_comparison/threeway_merge.tsv` |
-| Mirror Manhattan | `SDSworkspace/results/production/sds_output/sle_vs_nonsle_comparison/mirror_manhattan_SLE_vs_nonSLE.png` |
-| Delta Manhattan | `SDSworkspace/results/production/sds_output/sle_vs_nonsle_comparison/delta_manhattan_SLE_minus_nonSLE.png` |
-| Three-panel comparison | `SDSworkspace/results/production/sds_output/sle_vs_nonsle_comparison/three_panel_comparison.png` |
+| Mirror Manhattan (CMplot) | `SDSworkspace/results/production/sds_output/sle_vs_nonsle_comparison/mirror_manhattan_SLE_vs_nonSLE_CMplot.png` (SLE top / non-SLE bottom; shared peaks black, SLE-only red, nonSLE-only blue) |
+| ~~Mirror Manhattan~~ | ~~`mirror_manhattan_SLE_vs_nonSLE.png`~~ — **superseded, deleted 2026-08-05** (wrong: matplotlib non-CMplot, no peak annotation) |
+| ~~Delta Manhattan~~ | ~~`delta_manhattan_SLE_minus_nonSLE.png`~~ — **superseded, deleted 2026-08-05** |
+| ~~Three-panel comparison~~ | ~~`three_panel_comparison.png`~~ — **superseded, deleted 2026-08-05** |
 | Per-chromosome summary | `SDSworkspace/results/production/sds_output/sle_vs_nonsle_comparison/per_chr_threeway_summary.tsv` |
 | Top divergent windows | `SDSworkspace/results/production/sds_output/sle_vs_nonsle_comparison/top_divergent_windows.tsv` |
 | SLE Manhattan | `SDSworkspace/results/production/sds_output/SLE/sle.manhattan.png` |
