@@ -62,3 +62,20 @@ NyuWa_iHS, TOPMed_EAS_SDS, 1KG_iHS_CHB/CHS/JPT, EAS_FST1, EAS_FST2,
 EAS_Tajima.D, EAS_normiHS, EAS_iSAFE, EAS_CLR, EAS_PI, EAS_DDAF, EHH_class)
 
 User merges into SDS_signals_clump.xlsx manually.
+
+## 2026-08-11 round 2: SLE points + annotation fixes
+
+- **109 loci clumping (genome-wide p<5e-5, excl chr6 MHC)**: 1563 sites -> 109 loci
+  (greedy 0.5cM + lead-lead merge; per-group interval fix for multi-group chr).
+  chr3 (55 sites) pending phasing.
+- **3 SLE-family points** added (user Excel): 7:50266267 (rs4917014),
+  14:104928332 (rs2841281), 14:104928522 (rs2819469) — full annotation.
+- **Consequence reliability issue found**: local VEP batch returned empty for the
+  3 SLE points (stale output file read) -> wrongly labeled intergenic. User
+  flagged CADD shows intronic. Cross-check with Ensembl REST VEP: chr14 both
+  points are **intron_variant;upstream_gene_variant (PLD4)**; chr7 is
+  upstream_gene_variant. The 109 local-VEP annotations match REST (only 3 diffs,
+  all SLE points) — local annotations trustworthy.
+- 1KCP eQTL: top3 hits, `gene(p)` format.
+- Motif disruption: 106/109 non-coding loci + 3 SLE points (Δ fixed to ASCII d).
+- Final TSV: 112 rows x 40 cols, Excel column order.
