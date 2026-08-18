@@ -10,6 +10,7 @@
 | `relate_clues2` | Relate、CLUES2、selection trajectory | [2026-07-31_relate_chr19_v7_success.md](../sds/2026-07-31_relate_chr19_v7_success.md) | **chr19 pilot done** | Relate chr19 tree inference complete (v7, 9 attempts to fix). 3.7GB .anc + 57MB .mut ready for RelateSelection. ALL phasing in progress for genome-wide Relate. |
 | `population_structure` | ADMIXTURE、badMIXTURE、PCA-UMAP | [2026-06-26_population_structure_analysis.md](sds/2026-06-26_population_structure_analysis.md) | active | badMIXTURE 揭示离散模型 misfit (Row ACF ~0.86)；PCA-UMAP 证实 common/rare variants 连续梯度可补充 |
 
+| `genetic_maps` | 家系遗传图 (crossover counting, ZhongHua 芯片位点) | [2026-08-16_genetic_maps_zhonghua_genomewide.md](genetic_maps/2026-08-16_genetic_maps_zhonghua_genomewide.md) | **genome-wide done** | 247 trio (204 中文 + 44 CHS), 全基因组 5Mb Spearman vs b38 = 0.904; CO/mei pat 35.8 / mat 38.0 (性别比 1.06, mat 欠调 ~5-10%); 旧记录已移至本目录 (sle_family_locuszoom, microarray_fastsmc) |
 ## Priority Backfill
 
 1. `ihs_ehh`: 把显著位点表、gene label 输出和关键图补进来。
