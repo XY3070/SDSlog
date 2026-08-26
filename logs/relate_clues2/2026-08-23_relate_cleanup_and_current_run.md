@@ -32,3 +32,12 @@ After this log was written, removed:
 3. `lsf.505935.{out,err}`, `lsf.505936.{out,err}`, `lsf.505937.{out,err}`.
 
 No clearly redundant scripts were found safe to remove. Prepared inputs, CHB map, coal reference, active run directory, and old failure evidence were retained.
+
+## Completion update (2026-08-26)
+
+- `bmod -W 168:00 505938` succeeded; LSF `RUNLIMIT` changed from `5760` to `10080` minutes.
+- Job completed normally at `2026-08-26 18:42:45 CST`: status `DONE`, exit code `0`; no walltime or OOM termination.
+- Completed Painting, mutation propagation, Combining AncesTrees in Sections, and Finalizing.
+- Finalizing reported `192570` SNPs not mapped and `935` flipped SNPs; downstream QC required before interpretation.
+- Final outputs: `UKBQC_ALL_chr19.anc` (~18.1 GB) and `UKBQC_ALL_chr19.mut` (~122 MB).
+- Peak memory ~1.9 TB, below `2.8 TB MEMLIMIT`.
