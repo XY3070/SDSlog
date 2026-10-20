@@ -46,6 +46,8 @@
 | chr4 single SNP sensitivity | `summary.tsv`、`final_report.md`、scenario-level `rSDS` summary | [2026-04-16_chr4_99317841_gamma_sensitivity.md](logs/sds/2026-04-16_chr4_99317841_gamma_sensitivity.md) |
 | Region Ne0 panel | `scenario_manifest.tsv`、`scenario_aliases.json`、parallel submit plan | [2026-04-26_ncn_region_ne0_scenario_panel.md](logs/sds/2026-04-26_ncn_region_ne0_scenario_panel.md) |
 
+**Important — SLE ST3 iHS interpretation (2026-10-12):** Use the full QC-passed marker set as EHH flanks; thinning changed raw iHS sign at 15/130 (50% markers) and 24/129 (10% markers). Correct AA/DA core coding reversed all 130 raw scores exactly when intentionally flipped. Normalization uses pooled autosomal EPO=1 valid raw-iHS loci (100 equal-width true-DAF bins; per-bin sample SD; n≥20). Of 184 risk loci: EPO=1 131 listed / 130 raw+norm / 1 selscan zero-iHH skip; EPO=2 7/7 raw+norm; EPO=0 46 total = 2 present in VCF with ALT-vs-REF raw only + 44 absent from phased VCF (no raw or assessable EPO). Total: 139 raw scores, 137 polarized raw, 137 norm. **EPO=0 has no derived/ancestral direction**; in particular chr22:18167915 raw is retained but DAF/norm are blank. Details and files: [2026-10-12 ST3 iHS record](logs/ihs_ehh/2026-10-12_st3_ihs_sensitivity_and_postprocess.md).
+
 ## 5. Working Decisions
 
 - Singleton counts 在南北人群之间有系统差异，SDS 应分人群计算，不做简单 pooled scan。
