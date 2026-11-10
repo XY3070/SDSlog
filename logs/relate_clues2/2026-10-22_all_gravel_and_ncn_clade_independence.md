@@ -406,7 +406,7 @@ Q0/Q1 × PLIN3/DNM2, no-CI CLUES2 (LSF 637189–637192); MLE from the live `.clu
 | ARRDC5(−) | 2,398 | 11,238.5 | 11,238.5 | 4,086.4 | 100% | 100% | 0.111 |
 
 - **No region-specific subclade:** every signal's HK and JiNing carriers fall inside each other's carrier clade (84–100%), and the regional MRCAs are within ~0–25% of the all-carrier MRCA. The HK–JiNing age difference is not significant (perm p=0.078–0.96).
-- **Interpretation:** the selected haplotypes are **single, geographically widespread haplotypes**, not regional structure artifacts. Combined with cross-signal clade independence (no shared clade), this supports multiple independent standing haplotypes, each spread across regions; the NCN–SCN frequency difference is superimposed on the same haplotype rather than reflecting different haplotypes.
+- **Interpretation:** the selected haplotypes are **single, geographically widespread haplotypes**, not a sampling-site label effect; this validates the ADMIXTURE cluster assignment (region labels are sampling sites, not ancestry). Combined with cross-signal clade independence (no shared clade), this supports multiple independent standing haplotypes, each spread across regions; the NCN–SCN frequency difference is superimposed on the same haplotype rather than reflecting different haplotypes.
 - **Caveat:** carriers necessarily form one clade if the mutation is single-origin; the informative part is the young MRCA and the absence of deep regional substructure. The ages here are raw tree MRCAs; the Gravel-scaled ages in `signal_ages_gravel.tsv` are ~25% larger (e.g. MIR7-3 396 vs 316).
 - Script: `SDSpipeline/scripts/orthogonal/region_clade_test_ncn.py`.
 
@@ -543,22 +543,114 @@ Per-cohort, ARG-free haplotype sign (`iHH_der − iHH_anc` from selscan EHH; thi
 
 **NCN vs SCN for ARRDC5(−):** not previously run (SCN CLUES2 existed only for PLIN3/DNM2). Available SCN evidence: derived frequency 0.947 (NCN 0.955, ALL 0.940) and SCN EHH ΔiHH = −12.1 (NCN −10.8), i.e. the SCN haplotype sign is also negative. An SCN-subtree CLUES2 run (ALL ARG, Gravel EAS, corrected derived=T `.mut`) has been launched (no-CI) and will be appended when it finishes.
 
+## 5q. Structure confound: no PC1 common support, and 1KG EAS clines (2026-10-30)
+
+**Why this matters:** the region-sharing result (5m) shows NCN is internally homogeneous across Hong Kong/JiNing/Jinan, but NCN and SCN are **ancestry clusters**, not clean geographic groups. Internal homogeneity validates ADMIXTURE; it does **not** exclude the NCN–SCN contrast itself being population structure.
+
+**No common support on PC1:** NCN PC1 5–95% = [-0.0264, -0.0070]; SCN = [-0.0057, 0.0210]. Only **3.2%** of NCN lies within SCN's 5–95% range (and 3.2% vice versa). A PC1-stratified or PC1-matched NCN vs SCN test is therefore essentially unpowered; PC1 adjustment cannot separate the clusters.
+
+**1KG EAS frequencies at the 7 leads** (Ensembl variation, 1000 Genomes phase 3; table: `ALL_gravel/pop_structure/1kg_eas_clines_7signals.tsv`):
+
+| signal | derived | JPT | CHB | CHS | CDX | KHV | cohort NCN | cohort SCN | reading |
+|---|---|---|---|---|---|---|---|---|---|
+| MIR7-3 | C | 0.014 | 0.039 | 0.067 | 0.086 | 0.076 | 0.038 | 0.077 | **real south-high EAS cline; NCN<SCN matches** |
+| DNM2 | T | 0.053 | 0.044 | 0.057 | 0.113 | 0.091 | 0.030 | 0.071 | **CDX/KHV high; NCN<SCN matches** |
+| ARRDC5(+) | T | 0.288 | 0.316 | 0.367 | 0.387 | 0.399 | 0.356 | 0.372 | south-high; cohort difference small |
+| ARRDC5(−) | T | 0.986 | 0.951 | 0.924 | 0.952 | 0.944 | 0.953 | 0.933 | near-fixed; no informative cline |
+| UHRF1 | T | 0.029 | 0.087 | 0.067 | 0.027 | 0.051 | 0.058 | 0.057 | no monotonic EAS cline |
+| PLIN3 | T | 0.130 | 0.078 | 0.086 | 0.070 | 0.126 | 0.081 | 0.090 | north-high; no south-high cline |
+| DPP9 | T | 0.072 | 0.058 | 0.048 | 0.022 | 0.035 | 0.060 | 0.053 | north-high; cohort flat, not a south-high cline |
+
+- **MIR7-3 and DNM2 are the two signals with a real east-Asian south-high cline**, and their NCN<SCN cohort differences match it. Their CLUES2 s / EHH signals are therefore **confounded with structure**; the NCN–SCN frequency difference is not independent evidence of selection.
+- **DPP9** shows the opposite (north-high) 1KG pattern and a flat cohort difference; it is the least cline-confounded CLUES2 signal, but its EHH half-life is only 6.8 kb and s is ARG-dependent.
+- **UHRF1/PLIN3** have no consistent south-high cline; PLIN3 is already withdrawn; UHRF1's s CI crosses zero.
+- **Caveat:** a cline can itself be maintained by selection; the 1KG cline does not prove neutrality. It does mean the cohort contrast cannot be used as independent selection evidence.
+
+**Revised interpretation:** region sharing validates the ADMIXTURE cluster assignment (region labels are sampling sites, not ancestry) and rules out a sampling-site label effect; it does not address the between-cluster ancestry contrast. MIR7-3/DNM2 are downgraded to **cline/structure-confounded candidates**; DPP9 is the least cline-confounded but haplotype-weak; PLIN3 withdrawn; UHRF1 timing-unresolved. No chr19 signal is proven selection without a structure-aware null (two-deme simulation/ABC matched to the 1KG/cohort cline and F_ST).
+
+## 5r. Within-cluster PC1 clines: residual structure remains for some signals (2026-10-30)
+
+Controls only, within NCN and within SCN separately; PC1 residualized on singleton within group; `dosage ~ PC1_resid + singleton` (OLS, HC1). File: `ALL_gravel/pop_structure/within_cluster_pc1_clines_7signals.tsv`.
+
+| signal | NCN beta_std (p) | SCN beta_std (p) | reading |
+|---|---|---|---|
+| MIR7-3 | +0.033 (0.36) | **+0.085 (0.009)** | residual SCN cline |
+| DNM2 | **+0.075 (0.023)** | +0.055 (0.055) | residual NCN cline |
+| PLIN3 | +0.068 (0.051) | +0.002 (0.95) | borderline NCN |
+| DPP9 | +0.015 (0.65) | -0.044 (0.18) | **no within-cluster cline** |
+| UHRF1 | -0.022 (0.51) | **+0.070 (0.029)** | residual SCN cline |
+| ARRDC5(+) | **-0.085 (0.010)** | -0.017 (0.59) | ALT sign; derived opposite |
+| ARRDC5(-) | -0.002 (0.95) | +0.016 (0.62) | none |
+
+- PC1 captures structure **within** clusters as well: MIR7-3 (SCN), DNM2 (NCN), PLIN3 (NCN, borderline) and ARRDC5(+) (NCN) retain nominal within-cluster PC1 clines.
+- **DPP9 is the only CLUES2 signal with no within-cluster PC1 cline in either cluster** — the least structure-dependent of the set, though its EHH is short (6.8 kb) and s is ARG-dependent.
+- Within-cluster PC1 adjustment is valid for **within-cluster** selection tests; it cannot adjust the **between-cluster** contrast because PC1 nearly equals the group label (3.2% common support).
+- Consequence: MIR7-3/DNM2 remain structure-confounded even at the within-cluster level; DPP9 is the cleanest but haplotype-weak.
+
+## 5s. Simulation-based correction for population structure (2026-10-30)
+
+**Goal:** replace the verbal "structure caveat" with a neutral, structure-aware null for the chr19 lead statistics. The null is a two-deme coalescent model simulated with classic `ms` (Hudson), calibrated to the observed NCN/SCN F_ST, then used to ask whether the observed NCN–SCN frequency difference and EHH are unusual under structure alone.
+
+**Simulation model and parameters**
+
+- `ms` (classic Hudson coalescent; `/data/home/grp-wangyf/xuyuan/ms/msdir/ms`), two demes:
+  - NCN 2,454 haplotypes, SCN 5,074 haplotypes (`-I 2 2454 5074`), equal Ne (`-n 1 1 -n 2 1`).
+  - Symmetric migration `M = 4N0 m = 100` (`-ma 0 100 100 0`).
+  - Split time `T = 0.005` or `0.05` in units of 4N0 generations (`-ej T 2 1`), with `N0 = 10,000` → ~200 or ~2,000 generations.
+  - 200 kb region, `rho = 4N0 r L = 80` (`-r 80 15000`), 15,000 segregating sites (`-s 15000`) to match the observed SNP density (14,907–16,846 SNPs per ±100 kb window).
+  - 200 replicates per model; `-seeds` fixed per replicate for reproducibility.
+- **Calibration to observed structure:** observed chr19 background F_ST (MAF≥0.05, n=142): median 0.00231, p90 0.01072, p99 0.02569, max 0.03076. Model T=0.005/M=100: median 0.00181, p99 0.02903, max 0.04647; T=0.05/M=100: median 0.00153, p99 0.03185, max 0.05091. Both models match the low observed F_ST; the model tail is slightly heavier. Calibration grid and table: `ALL_gravel/pop_structure/structure_sim_calibration.tsv`.
+- **Null statistic:** per replicate, one neutral SNP per target DAF (7 targets, ±0.01 frequency match, position 0.2–0.8), compute f_NCN, f_SCN, Δ, Hudson F_ST, and EHH of the target-frequency allele (≤500 carriers) at 5/10/20/35/50 kb with MAF≥0.05; half-life by interpolation.
+- **Observed statistic:** NCN+SCN haplotypes from `UKBQC_ALL_chr19.phased.vcf.gz` ±100 kb, same EHH estimator, MAF≥0.05, ≤500 carriers, 5 subsamples; f/Δ/F_ST at the lead.
+- **Empirical p:** `(1 + #{null ≥ observed}) / (1 + n_null)`, one-sided (longer EHH / larger |Δ| / larger F_ST).
+
+**Results (MAF≥0.05; 15,000-site null; 200 reps; p for EHH at 50 kb / |Δfreq| / F_ST):**
+
+| signal | obs half-life (kb) | obs EHH50 | obs |Δf| | obs F_ST | p EHH50 (T=0.005 / T=0.05) | p |Δf| (T=0.005 / T=0.05) | p F_ST (T=0.005 / T=0.05) |
+|---|---|---|---|---|---|---|---|---|
+| DNM2 | 50 (censored) | 0.753 | 0.0435 | 0.0184 | **0.095 / 0.020** | 0.080 / 0.090 | 0.070 / 0.075 |
+| MIR7-3 | 27.4 | 0.126 | 0.0381 | 0.0126 | 1.000 / 0.995 | 0.114 / 0.184 | 0.100 / 0.164 |
+| UHRF1 | 18.9 | 0.218 | 0.0019 | ~0 | 0.930 / 0.826 | 0.950 / 0.945 | 0.955 / 0.950 |
+| DPP9 | 9.5 | 0.229 | 0.0075 | 0.0002 | 0.955 / 0.876 | 0.751 / 0.746 | 0.756 / 0.751 |
+| PLIN3 | 7.9 | 0.031 | 0.0078 | 0.0001 | 1.000 / 1.000 | 0.776 / 0.821 | 0.771 / 0.821 |
+| ARRDC5(−) | 4.9 | 0.027 | 0.0216 | 0.0041 | **0.950 / 0.184** | 0.378 / 0.383 | 0.383 / 0.378 |
+| ARRDC5(+) | 4.8 | 0.113 | 0.0134 | 0.0001 | **0.020 / 0.005** | 0.741 / 0.796 | 0.741 / 0.796 |
+
+**Interpretation**
+
+- **Frequency/FST differences are fully compatible with the neutral two-deme null.** No signal reaches p<0.05 for |Δfreq| or F_ST in either model (minimum p≈0.07 for DNM2); MIR7-3/DNM2 are at the ~90th–93rd percentile, not extreme. This is consistent with the 1KG EAS south-high clines and the within-cluster PC1 clines: the between-cluster frequency difference is what structure produces.
+- **EHH is not longer than the structure null for the main signals.** MIR7-3 (p=1.00/0.995), UHRF1 (0.93/0.83), DPP9 (0.96/0.88) and PLIN3 (1.00/1.00) are within or below the null; in fact the observed half-lives are **shorter** than the null medians for MIR7-3, UHRF1, DPP9 and PLIN3. The two-deme null predicts long common-variant haplotypes (median half-life 24–50 kb at low DAF), so the observed 8–27 kb is not evidence of selection.
+- **Only nominal EHH excesses:** DNM2 (p=0.020 under T=0.05, p=0.095 under T=0.005) and ARRDC5(+) (p=0.005–0.020), but neither has a frequency difference beyond the null (p≈0.74–0.90), and neither survives Bonferroni (0.05/14≈0.0036). ARRDC5(−) has an inconsistent half-life p=0.005 but EHH50 p=0.18–0.95 at a near-fixed allele; uninterpretable.
+- **Conclusion:** once a plausible structure model is used, **there is no robust simulation evidence for selection beyond population structure at any chr19 signal**. MIR7-3 and DNM2 are structure-confounded; DPP9/PLIN3/UHRF1 are within the null; ARRDC5(+) is a weak nominal EHH hint only. The earlier CLUES2 s values should not be interpreted as structure-independent selection coefficients.
+
+**Limitations**
+
+- The two-deme model is a simplification: no continuous north–south cline, no admixture, no fine-scale structure; it is calibrated to F_ST but not to the full LD/SFS. The null predicts long haplotypes (recent split/high migration), so the EHH test is conservative (low power) rather than liberal.
+- Marker density and MAF filtering strongly affect EHH: all-variant analyses gave shorter nulls and apparent excesses; MAF≥0.05 + dense markers (the selscan-like comparison) is the primary analysis. The sparse/null-density comparison is kept only as a sensitivity check.
+- Neutral simulations only; no selection/hitchhiking simulation. CLUES2/Relate ARG statistics were not simulated; the null covers frequency/FST/EHH, not the CLUES2 s.
+- 7 signals × 2 models × 3 statistics; nominal p-values are not corrected except where stated; no result survives Bonferroni.
+- External replication in an independent East Asian cohort remains necessary.
+
+**Files:** `ALL_gravel/pop_structure/structure_sim_calibrate.py`, `structure_sim_null.py`, `structure_sim_observed.py`, `structure_sim_compare.py`; outputs `structure_sim_calibration.tsv`, `structure_sim_null_dense_maf05_T0.005_M100.tsv`, `...T0.05_M100.tsv`, `structure_sim_observed_maf05.tsv`, `structure_sim_observed_vs_null_maf05.tsv`, `structure_sim_summary_maf05.png`.
+
 ## 6. Status / next
 
 Items 1–5 of the previous plan are done (ARRDC5 flip fix; ALL clade independence; PLIN3 diagnosis + withdrawal; MIR7-3/DNM2 frequency matching; all posteriors). Current status by signal:
 
 | Signal | Evidence | Verdict |
 |---|---|---|
-| MIR7-3 | F_ST 99.6th; PC1 98.7; freq-matched +0.0197; no shared clade; carrier clade shared HK/JiNing 95–100%; clade age 396 gen | **Most robust selection signal** (independent; structure caveat) |
-| DNM2 | F_ST 99.7th; PC1 96.3; freq-matched +0.0201; clade age 693 gen; shared HK/JiNing 100/84%; **EHH half-life 32–34 kb in Q0/Q1/SCN (reproducible), 16 kb NCN; CLUES2 s2 batch-unstable** | **Modest extended haplotype, reproducible across HK batches; s2 estimate unreliable** |
-| DPP9 | CLUES2 +0.029 (strongest), no PC1 cline (62nd), clade age 1,283 gen, shared 100/100 | Candidate; ARG-dependent |
+| MIR7-3 | F_ST 99.6th; PC1 98.7; freq-matched +0.0197; region-shared clade; **1KG EAS south-high cline; cohort NCN 0.038<SCN 0.077; simulation EHH p=1.00, |Δf| p=0.11** | **Structure-confounded; simulation null compatible; not established** |
+| DNM2 | F_ST 99.7th; PC1 96.3; freq-matched +0.0201; EHH 32–34 kb; **1KG EAS CDX 0.113; cohort NCN 0.030<SCN 0.071; simulation EHH50 p=0.02/0.09, |Δf| p=0.08** | **Structure-confounded; nominal EHH only; not established** |
+| DPP9 | CLUES2 +0.029; no PC1 cline; **1KG north-high (JPT 0.072>CDX 0.022), cohort flat**; EHH 6.8 kb; **simulation EHH p=0.96, |Δf| p=0.75** | **Within structure null; not supported** |
 | UHRF1 | p(t) trajectory clean, s CI crosses 0 in all epochs, clade age 511 gen, shared 100/98 | Trajectory only, timing unresolved |
 | PLIN3 | NCN ARG artifact (+0.017 → −0.002 in subtree); HK CLUES2 batch test fails; **EHH half-life 4–5 kb in all groups (no haplotype extension)** | **Withdrawn** |
 | ARRDC5(−) | sign flip, near-fixed (DAF 0.94), clade age 44,245 gen | Not interpretable |
-| ARRDC5(+) | corrected +0.0073 [0.0013,0.0132], clade age 4,500 gen, shared 100/99 | Weak, concordant |
+| ARRDC5(+) | corrected +0.0073 [0.0013,0.0132]; **simulation EHH p=0.005–0.02, |Δf| p=0.74** | Weak nominal EHH; no frequency effect |
 | ACO2 | SDS 6.07, 136 kb r²≥0.8 block, enhancer intron, 1KG cline, iHS −0.57, **NCN–SCN F_ST 5.5%** | **Clinal/standing candidate; selection not established** |
 | OR4X2 | weak LD (2 SNPs r²≥0.8), iHS −2.91, 1KG cline, **NCN–SCN F_ST 7.8%** | **Clinal/drift, not a sweep** |
 
-**Consolidated table:** `SDSworkspace/results/production/orthogonal/relate_clues2/ALL_gravel/signal_robustness_summary.tsv` (15 signals × SDS, iHS, F_ST, PC1 local percentile, CLUES2 NCN/ALL/freq-matched/NCN-subtree, clade age, region sharing, batch EHH, verdict), built reproducibly by `SDSpipeline/scripts/orthogonal/make_signal_robustness_summary.py`. Key contrast: the known-selection controls ADH1B/ALDH2 have PC1 local percentiles 0.0/21.1 (no cline), while ACO2/OR4X2 are 97.2/100 and F_ST 5.5%/7.8% — their SDS signals are structure-first. MIR7-3/DNM2 combine F_ST 1.4%/1.7%, PC1 98.7/96.3, stable freq-matched s≈0.02, no shared sweep, and a carrier clade shared across HK/JiNing; **MIR7-3 is the most robust**; **DNM2 has a reproducible 32–34 kb extended haplotype in Q0/Q1/SCN (EHH, ARG-free) but an unstable CLUES2 s2** (16 kb in NCN); **PLIN3 has no EHH extension at all (4–5 kb)** (caveat: Relate's coalescent does not model structure).
+**Structure simulation (5s):** the two-deme ms null, calibrated to the observed F_ST (T=0.005/0.05, M=100, 15k sites, MAF≥0.05, 200 replicates), shows **no signal with |Δfreq| or F_ST beyond the null** (p≥0.07); EHH50 is within the null for MIR7-3/DPP9/PLIN3/UHRF1 and nominal only for DNM2 (p=0.02/0.09) and ARRDC5(+) (p=0.005/0.02), neither surviving Bonferroni. **No chr19 signal survives a structure-corrected simulation test; selection remains unestablished.**
 
-Remaining optional follow-ups: (a) per-batch SDS/iHS/EHH — **EHH done (5n)**; (b) ACO2 eQTL/luciferase follow-up; (c) OR4X2 CNV/mapping check. None of these change the current conclusions.
+**Consolidated table:** `SDSworkspace/results/production/orthogonal/relate_clues2/ALL_gravel/signal_robustness_summary.tsv` (15 signals × SDS, iHS, F_ST, PC1 local percentile, CLUES2 NCN/ALL/freq-matched/NCN-subtree, clade age, region sharing, batch EHH, verdict), built reproducibly by `SDSpipeline/scripts/orthogonal/make_signal_robustness_summary.py`. Key contrast: the known-selection controls ADH1B/ALDH2 have PC1 local percentiles 0.0/21.1 (no cline), while ACO2/OR4X2 are 97.2/100 and F_ST 5.5%/7.8% — their SDS signals are structure-first. **the two strongest CLUES2/EHH signals (MIR7-3, DNM2) are exactly the signals with a real 1KG EAS south-high cline and a matching NCN<SCN difference — their selection inference is structure-confounded**; **DPP9 lacks a south-high cline** (1KG JPT>CDX; cohort flat) but has short EHH (6.8 kb) and an ARG-dependent s; **PLIN3 has no EHH extension (4–5 kb)**; **UHRF1's s CI crosses zero**. No chr19 signal is proven selection; a structure-aware null is required.
+
+Remaining follow-ups: (a) per-batch SDS/iHS/EHH — **EHH done (5n)**; (b) ACO2 eQTL/luciferase follow-up; (c) OR4X2 CNV/mapping check; **(d) two-deme simulation null — done (5s)**; (e) better-calibrated LD/SFS demographic null and CLUES2 on simulated ARGs; (f) external replication in an independent East Asian cohort.
