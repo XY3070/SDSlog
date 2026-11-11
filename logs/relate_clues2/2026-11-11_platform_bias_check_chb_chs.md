@@ -31,7 +31,7 @@ Question: 我们队列里 DPP9/MIR7-3 在 NCN 里偏高的选择信号，是不�
 
 ## 人口模型
 
-- 位点 s2 来自 CLUES2：队列用 `PM_NCN/PM_SCN` 自己算的 coal（见 2026-11-10 记录），CHB/CHS 用 `Gravel_EAS.coal`。两套口径不同，所以 s2 绝对值不可直接比。
+- 位点 s2 来自 CLUES2：队列用 `PM_NCN/PM_SCN` 自己算的 coal（见 2026-11-10 记录），CHB/CHS 用 `Gravel_EAS.coal`。两套标准不同，所以 s2 绝对值不可直接比。
 - `Gamma shape source=不适用（CLUES2 用 coal）`；`Present-day Ne(0)=见 coal 反推（队列约 6300/7500，1KG 用 Gravel）`；`Model role=audit-only`；`Model note=本记录只做平台/批次排查，不改选择结论`
 
 ## 结论（人话版）
