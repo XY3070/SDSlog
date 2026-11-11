@@ -62,6 +62,8 @@
 
 | 2026-11-10 | **结构感知验证三项更正 + 真实队列 coal 重算**：(1) 模拟中性零分布原用 `Gravel_EAS.coal`（隐含 Ne≈45,000）与模拟设定 Ne=3,000 相差 ~15×，把中性位点算出 logLR 中位 4.32 / s2 +0.048；改用模拟自身 ARG 经 `CoalRateForTree` 生成的 `sim_calibrated.coal`（SBL 与 CLUES2 同用）后，n=60 零分布 logLR 中位 **0.79**（p90 2.46 / max 11.98）、s2 中位 **−0.0067**（围绕 0 对称）。旧错 coal 零分布 `work/null/`（752 MB）已删。(2) 平台标签收紧：仅 222 个公共 1KG/HGDP 编号为确定 Illumina；`HKU_` 前缀降级（非确定 Illumina）；BGI 全为推断、无确定 BGI → 无法用确定标签做平台对照，prior 结论降级。(3) 真实数据 SBL 与 CLUES2 的 `--coal` 一致（均 Gravel）；已生成 PM_NCN（Ne≈6,328）/PM_SCN（Ne≈7,481）经验 coal，LSF job **880728**（smp）重算 14 个真实 lead 单元（匹配口径下再判 lead 是否超出中性）。详见 [2026-11-10_coal_calibration_null_and_platform_labels.md](logs/relate_clues2/2026-11-10_coal_calibration_null_and_platform_labels.md) | [2026-11-10_coal_calibration_null_and_platform_labels.md](logs/relate_clues2/2026-11-10_coal_calibration_null_and_platform_labels.md) |
 
+| 2026-11-11 | **平台假象排查（三角度 + 同平台对照）**：(1) 位点朝向：7 个位点在 NCN/SCN 两群里祖先型/衍生型判断完全一致（都不翻转），内部偶发分支翻转只占 1–5%、不分群；UHRF1 是唯一两群 s2 正负相反的位点，但朝向相同、数值不同，不是标签反了。(2) 测序质量：两群平均深度 38.6、碱基质量 93.8，**没有南北断崖**。(3) 缺失率与稀有突变：NCN 整体偏高（全基因组缺失率 0.0040 对 0.0034，"只出现一次/两次的突变"比例也略高），但整条染色体随机窗口同样偏高（20 窗差：缺失率 +0.00081±0.00068、稀有突变比 +0.88±1.46），这 7 个位点窗口没有超出范围。(4) 同平台对照：1KG 的 CHB/CHS（103 对 105，同一台机器、同一套流程）质量指标完全一样（缺失率 0/0、深度 35.6/35.4、质量 94.3/94.2），**但位点仍有差异**（DPP9 是随机波动的 7.49 倍、DNM2 5.91 倍）→ 位点差异不是平台造出来的。**结论：没有明显的平台假象；NCN 整体缺失率偏高是全队列背景混杂，需继续控制。** 详见 [2026-11-11_platform_bias_check_chb_chs.md](logs/relate_clues2/2026-11-11_platform_bias_check_chb_chs.md) | [2026-11-11_platform_bias_check_chb_chs.md](logs/relate_clues2/2026-11-11_platform_bias_check_chb_chs.md) |
+
 ## Notes To Keep
 
 - 当前优先保证：每个关键测试或生产结果都有 detailed log，每张关键图都有 source path，每个关键结果文件都有 absolute path。
