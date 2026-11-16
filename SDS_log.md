@@ -66,6 +66,8 @@
 
 | 2026-11-14 | **零分布改用 464 条单倍型 + 全基因组 PCA 重跑**：(1) 旧模拟零分布 928 条单倍型 vs PM 臂 464 条，不可直接比；新模拟只输出两端两群（232 二倍体 = 464 单倍型，F_ST=0.00258），Relate 作业 154887，用模拟自己的 coal（SBL 与 CLUES2 同用）重跑中性位点。(2) 464 单倍型零分布明显收紧：截至 39 个位点 logLR 中位 1.08、95 分位 2.66、最大 2.92（旧 928 单倍型最大 11.98）。经验 p（最小可分辨 0.025）：PM_NCN 的 DPP9 9.42、MIR7-3 9.91、UHRF1 3.73 均 p=0.025；PLIN3 0.20、DNM2 0.35；PM_SCN 的 DPP9/MIR7-3/PLIN3 也 p=0.025。多个位点顶到分辨下限，150 个中性位点仍在跑。(3) **coal 解释更正**：第三行是逐时段瞬时合并率；PM 臂近期 Ne 约 3.7 万（49.6 代），全时段中位数才是 6.3k/7.5k，此前把中位数当 Ne(0) 是错的。(4) 主成分梯度改用新的全基因组 PC（9.2 万位点、chr19 排除）重跑，结论不变：DNM2 超出比例 0.023、MIR7-3 0.039，其余在背景内。详见 [2026-11-14_sim464_null_and_new_pca.md](logs/relate_clues2/2026-11-14_sim464_null_and_new_pca.md) | [2026-11-14_sim464_null_and_new_pca.md](logs/relate_clues2/2026-11-14_sim464_null_and_new_pca.md) |
 
+| 2026-11-16 | **Panmictic 消融 + 真实频率/Δp 双匹配背景**：(1) 与 stepping-stone 同参数、仅去掉结构（k=1，F_ST=−0.002）的 150 个中性位点，logLR 中位 0.73、最大 5.62；与 stepping-stone 零分布（中位 0.77、最大 3.90）KS p=0.53，**分不开**。说明 logLR 噪声主要来自 CLUES2/ARG 流程本身，不是结构；无结构数据也有 5/150（3.3%）超过 3.90，但无一达到 lead 的 9.4/9.9。(2) 真实 chr19 上距 lead >5 Mb、不在基因体、不在重组率前 10%、|AF−AF_lead|≤0.02、|Δp−Δp_lead|≤0.005 的背景位点，每个 lead 跑 50–55 个（PM_NCN 臂，队列 coal）。经验 p：DPP9 **0.137**、MIR7-3 **0.078**、PLIN3 0.679、UHRF1 0.321、DNM2 0.929——**没有一个显著**；DPP9 匹配背景 logLR 中位 6.08、最高 15.81。结论：lead 的高 logLR 是"同样南北差的真实位点"的普遍性质，**"过模拟零分布"不能升级为选择证据**。详见 [2026-11-16_panmictic_ablation_and_matched_background.md](logs/relate_clues2/2026-11-16_panmictic_ablation_and_matched_background.md) | [2026-11-16_panmictic_ablation_and_matched_background.md](logs/relate_clues2/2026-11-16_panmictic_ablation_and_matched_background.md) |
+
 ## Notes To Keep
 
 - 当前优先保证：每个关键测试或生产结果都有 detailed log，每张关键图都有 source path，每个关键结果文件都有 absolute path。
